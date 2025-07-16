@@ -1,0 +1,54 @@
+<div class="home-container">
+  <section class="hero-section">
+    <div class="hero-content">
+      <h1 class="hero-title">
+        <mat-icon class="hero-icon">rocket_launch</mat-icon>
+        Welcome to My App
+      </h1>
+      <p class="hero-description">
+        A modern Angular application built with Material Design and the latest
+        Angular features. Explore our lab section to see Angular Material
+        components in action.
+      </p>
+
+      <mat-chip-set class="tech-stack">
+        @for (tech of techStack(); track tech) {
+        <mat-chip highlighted>{{ tech }}</mat-chip>
+        }
+      </mat-chip-set>
+    </div>
+  </section>
+
+  <mat-divider></mat-divider>
+
+  <section class="features-section">
+    <h2>Features</h2>
+    <div class="features-grid">
+      @for (feature of features(); track feature.title) {
+      <mat-card class="feature-card" appearance="outlined">
+        <mat-card-header>
+          <mat-icon mat-card-avatar [style.color]="'var(--mat-primary-500)'">{{
+            feature.icon
+          }}</mat-icon>
+          <mat-card-title>{{ feature.title }}</mat-card-title>
+        </mat-card-header>
+
+        <mat-card-content>
+          <p>{{ feature.description }}</p>
+        </mat-card-content>
+
+        @if (feature.route || feature.action) {
+          <mat-card-actions align="end">
+            @if (feature.route) {
+              <button mat-button (click)="navigateTo(feature.route)">
+                {{ feature.action || 'Explore' }}
+                <mat-icon>arrow_forward</mat-icon>
+              </button>
+            }
+          </mat-card-actions>
+        }
+      </mat-card>
+      }
+    </div>
+  </section>
+</div>

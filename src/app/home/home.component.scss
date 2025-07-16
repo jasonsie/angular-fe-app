@@ -1,0 +1,150 @@
+.home-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.hero-section {
+  padding: 3rem 0;
+  text-align: center;
+
+  .hero-content {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .hero-title {
+    font-size: 3rem;
+    font-weight: 300;
+    margin-bottom: 1.5rem;
+    color: var(--mat-primary-500);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+
+    .hero-icon {
+      font-size: 3rem;
+      width: 3rem;
+      height: 3rem;
+    }
+  }
+
+  .hero-description {
+    font-size: 1.2rem;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+    color: var(--mat-on-surface-variant);
+  }
+
+  .tech-stack {
+    justify-content: center;
+    margin-top: 2rem;
+
+    mat-chip {
+      margin: 0.25rem;
+    }
+  }
+}
+
+.features-section {
+  padding: 3rem 0;
+
+  h2 {
+    text-align: center;
+    font-size: 2.5rem;
+    font-weight: 300;
+    margin-bottom: 3rem;
+    color: var(--mat-on-surface);
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+  }
+
+  .feature-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    mat-card-header {
+      padding-bottom: 1rem;
+
+      mat-icon[mat-card-avatar] {
+        font-size: 2rem;
+        width: 2rem;
+        height: 2rem;
+        line-height: 2rem;
+      }
+    }
+
+    mat-card-content {
+      p {
+        margin: 0;
+        line-height: 1.6;
+        color: var(--mat-on-surface-variant);
+      }
+    }
+
+    mat-card-actions {
+      button {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+
+        mat-icon {
+          font-size: 1.2rem;
+          width: 1.2rem;
+          height: 1.2rem;
+        }
+      }
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .home-container {
+    padding: 1rem;
+  }
+
+  .hero-section {
+    padding: 2rem 0;
+
+    .hero-title {
+      font-size: 2rem;
+      flex-direction: column;
+      gap: 0.5rem;
+
+      .hero-icon {
+        font-size: 2rem;
+        width: 2rem;
+        height: 2rem;
+      }
+    }
+
+    .hero-description {
+      font-size: 1rem;
+    }
+  }
+
+  .features-section {
+    padding: 2rem 0;
+
+    h2 {
+      font-size: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .features-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+  }
+}

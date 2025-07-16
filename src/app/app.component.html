@@ -1,8 +1,22 @@
-<nav class="main-nav">
-  <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a>
-  <a routerLink="/lab" routerLinkActive="active">Lab</a>
-</nav>
+<header>
+  <mat-toolbar color="primary" class="app-toolbar">
+    <button mat-button routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+      <mat-icon>home</mat-icon>
+      Home
+    </button>
+    <button mat-button routerLink="/lab" routerLinkActive="active">
+      <mat-icon>science</mat-icon>
+      Lab
+    </button>
 
-<main>
+    <div class="flex-spacer"></div>
+
+    <button mat-icon-button aria-label="GitHub Repository">
+      <mat-icon>code</mat-icon>
+    </button>
+  </mat-toolbar>
+</header>
+
+<main class="app-main">
   <router-outlet></router-outlet>
 </main>

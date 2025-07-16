@@ -1,33 +1,84 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule } from '@angular/forms';
+import {
+  MatCard,
+  MatCardContent,
+  MatCardHeader,
+  MatCardTitle,
+} from '@angular/material/card';
+import { MatButton, MatIconButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { MatFormField, MatLabel, MatError } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { MatSelect } from '@angular/material/select';
+import { MatOption } from '@angular/material/core';
+import { MatCheckbox } from '@angular/material/checkbox';
+import { MatRadioButton, MatRadioGroup } from '@angular/material/radio';
+import { MatSlider, MatSliderThumb } from '@angular/material/slider';
+import { MatChipListbox, MatChipOption } from '@angular/material/chips';
+import { MatProgressBar } from '@angular/material/progress-bar';
+import { MatDivider } from '@angular/material/divider';
+import {
+  MatExpansionPanel,
+  MatExpansionPanelHeader,
+  MatExpansionPanelTitle,
+  MatAccordion,
+} from '@angular/material/expansion';
+import { MatTab, MatTabGroup } from '@angular/material/tabs';
+
+interface DemoSection {
+  title: string;
+  description: string;
+  icon: string;
+  expanded: boolean;
+}
 
 @Component({
   selector: 'app-lab',
   standalone: true,
-  imports: [CommonModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatCard,
+    MatCardContent,
+    MatCardHeader,
+    MatCardTitle,
+    MatButton,
+    MatIconButton,
+    MatIcon,
+    MatFormField,
+    MatLabel,
+    MatError,
+    MatInput,
+    MatSelect,
+    MatOption,
+    MatCheckbox,
+    MatRadioButton,
+    MatRadioGroup,
+    MatSlider,
+    MatSliderThumb,
+    MatChipListbox,
+    MatChipOption,
+    MatProgressBar,
+    MatDivider,
+    MatExpansionPanel,
+    MatExpansionPanelHeader,
+    MatExpansionPanelTitle,
+    MatAccordion,
+    MatTab,
+    MatTabGroup,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <div class="lab-container">
-      <h1>Lab Page</h1>
-      <p>Welcome to the Lab section!</p>
-    </div>
-  `,
-  styles: [`
-    .lab-container {
-      padding: 2rem;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-
-    h1 {
-      color: #1976d2;
-      margin-bottom: 1rem;
-    }
-
-    p {
-      font-size: 1.1rem;
-      line-height: 1.6;
-    }
-  `]
+  templateUrl: './lab.component.html',
+  styleUrls: ['./lab.component.scss'],
+  host: {
+    class: 'main-content lab-page',
+  },
 })
-export class LabComponent {}
+export class LabComponent implements OnInit {
+  constructor() {}
+  ngOnInit() {
+    // Initialization logic can go here
+  }
+}
