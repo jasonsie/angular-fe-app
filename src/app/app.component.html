@@ -1,13 +1,20 @@
 <header>
   <mat-toolbar color="primary" class="app-toolbar">
-    <button mat-button routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
-      <mat-icon>home</mat-icon>
-      Home
+    @for (header of headers; track header.route) {
+    <button
+      mat-button
+      [routerLink]="header.route"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="
+        header.route === '/' ? { exact: true } : { exact: false }
+      "
+    >
+      @if (header.icon) {
+      <mat-icon>{{ header.icon }}</mat-icon>
+      }
+      {{ header.title }}
     </button>
-    <button mat-button routerLink="/lab" routerLinkActive="active">
-      <mat-icon>science</mat-icon>
-      Lab
-    </button>
+    }
 
     <div class="flex-spacer"></div>
 
