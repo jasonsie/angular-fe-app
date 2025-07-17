@@ -1,4 +1,4 @@
-import { Header } from '../model/layout.model';
+import { Header } from '../models/layout.model';
 
 export const Headers: Header[] = [
   {

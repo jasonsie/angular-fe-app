@@ -1,32 +1,14 @@
 import { Component, ViewEncapsulation, inject } from '@angular/core';
-import {
-  RouterOutlet,
-  Router,
-  NavigationEnd,
-  RouterLink,
-  RouterLinkActive,
-} from '@angular/router';
-import { MatToolbar } from '@angular/material/toolbar';
-import { MatButton, MatIconButton } from '@angular/material/button';
-import { MatIcon } from '@angular/material/icon';
-import { CommonModule } from '@angular/common';
+import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
-import { Header } from './core/model/layout.model';
-import { Headers } from './core/config/header.config';
 
 @Component({
   selector: 'app-root',
-  imports: [
-    CommonModule,
-    RouterOutlet,
-    RouterLink,
-    RouterLinkActive,
-    MatToolbar,
-    MatButton,
-    MatIconButton,
-    MatIcon,
-  ],
-  templateUrl: './app.component.html',
+  standalone: true,
+  imports: [RouterOutlet],
+  template: `
+    <router-outlet></router-outlet>
+  `,
   styleUrl: './app.component.scss',
   encapsulation: ViewEncapsulation.None,
   host: {
@@ -35,8 +17,8 @@ import { Headers } from './core/config/header.config';
 })
 export class AppComponent {
   title = 'my-app';
-  router = inject(Router);
-  headers: Header[] = Headers;
+
+  private readonly router = inject(Router);
 
   constructor() {
     // Track navigation for potential analytics or focus management

@@ -1,0 +1,44 @@
+.app-footer {
+  background-color: var(--mat-sys-surface-variant);
+  border-top: 1px solid var(--mat-sys-outline-variant);
+  padding: 16px 24px;
+  margin-top: auto;
+}
+
+.footer-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.footer-info {
+  color: var(--mat-sys-on-surface-variant);
+
+  p {
+    margin: 0;
+    font-size: 0.875rem;
+  }
+}
+
+.footer-links {
+  display: flex;
+  gap: 8px;
+
+  button {
+    mat-icon {
+      margin-right: 4px;
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .footer-content {
+    flex-direction: column;
+    text-align: center;
+  }
+}

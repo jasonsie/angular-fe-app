@@ -1,0 +1,20 @@
+<header>
+  <mat-toolbar class="app-toolbar">
+    @for (header of headers(); track trackByRoute($index, header)) {
+    <button
+      mat-button
+      [routerLink]="header.route"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="getRouterLinkActiveOptions(header.route)"
+      [attr.aria-label]="'Navigate to ' + header.title"
+    >
+      @if (header.icon) {
+      <mat-icon [attr.aria-hidden]="true">{{ header.icon }}</mat-icon>
+      }
+      {{ header.title }}
+    </button>
+    }
+
+    <div class="flex-spacer"></div>
+  </mat-toolbar>
+</header>
