@@ -21,15 +21,67 @@ export const DefaultUL: string = '<ul class="list-disc"><li></li></ul>';
 })
 export class RichTextEditorComponent {
   @ViewChild('editor', { static: true }) editorRef!: ElementRef<HTMLDivElement>;
+
   DefaultUL = DefaultUL;
-  htmlStringData = input<string>('');
+  htmlStringData = input<string>(
+    '<ul class="list-disc"><li><a href="https://www.google.com/" target="_blank" rel="noopener noreferrer">link</a></li></ul>'
+  );
   htmlString = signal<string>('');
+
+  // Popover state for link input
+  showLinkPopover = signal(false);
+  linkPopoverPosition = signal<{ top: number; left: number } | null>(null);
+  linkInputValue = signal('');
+  editingLinkNode = signal<HTMLAnchorElement | null>(null);
+
+  // Popover state for link actions (edit/remove)
+  showLinkActionsPopover = signal(false);
+  linkActionsPosition = signal<{ top: number; left: number } | null>(null);
+  hoveredLinkNode = signal<HTMLAnchorElement | null>(null);
 
   constructor() {
     afterNextRender(() => {
       this.initHandler();
+      // Attach caret event listeners for link popover (typing cursor)
+      const editor = this.editorRef?.nativeElement;
+      if (editor) {
+        editor.addEventListener('mouseup', this.handleCaretInLink);
+        editor.addEventListener('keyup', this.handleCaretInLink);
+      }
     });
   }
+  // Show link actions popover if caret is inside a link
+  handleCaretInLink = () => {
+    const selection = window.getSelection();
+    if (!selection || !selection.anchorNode) {
+      this.showLinkActionsPopover.set(false);
+      this.hoveredLinkNode.set(null);
+      return;
+    }
+    let node: Node | null = selection.anchorNode;
+    // If text node, get parent
+    if (node.nodeType === Node.TEXT_NODE) {
+      node = node.parentElement;
+    }
+    // Traverse up to find <a>
+    while (node && (node as HTMLElement).tagName !== 'A' && node !== this.editorRef.nativeElement) {
+      node = node.parentNode;
+    }
+    if (node && (node as HTMLElement).tagName === 'A') {
+      const link = node as HTMLAnchorElement;
+      const rect = link.getBoundingClientRect();
+      const editorRect = this.editorRef.nativeElement.getBoundingClientRect();
+      this.linkActionsPosition.set({
+        top: rect.bottom - editorRect.top + 4,
+        left: rect.left - editorRect.left,
+      });
+      this.hoveredLinkNode.set(link);
+      this.showLinkActionsPopover.set(true);
+    } else {
+      this.showLinkActionsPopover.set(false);
+      this.hoveredLinkNode.set(null);
+    }
+  };
 
   /**
    * Initializes the editor content and focuses the editor.
@@ -53,12 +105,121 @@ export class RichTextEditorComponent {
     return html;
   }
 
+  private savedRange: Range | null = null;
+
   addLink() {
-    const url = prompt('Enter URL:');
-    if (url) {
-      document.execCommand('createLink', false, url);
-      this.editorRef.nativeElement.focus();
+    // Show popover next to selection and save the range
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
+      return;
     }
+    const range = selection.getRangeAt(0);
+    this.savedRange = range.cloneRange();
+    const rect = range.getBoundingClientRect();
+    // Position popover below selection
+    const editorRect = this.editorRef.nativeElement.getBoundingClientRect();
+    this.linkPopoverPosition.set({
+      top: rect.bottom - editorRect.top + 4,
+      left: rect.left - editorRect.left,
+    });
+    this.linkInputValue.set('');
+    this.editingLinkNode.set(null);
+    this.showLinkPopover.set(true);
+    setTimeout(() => {
+      const input = document.getElementById('link-input-box');
+      if (input) (input as HTMLInputElement).focus();
+    }, 0);
+  }
+
+  applyLink() {
+    const url = this.linkInputValue();
+    if (!url) {
+      this.closeLinkPopover();
+      return;
+    }
+    const editingNode = this.editingLinkNode();
+    if (editingNode) {
+      editingNode.href = url;
+      this.closeLinkPopover();
+      this.editorRef.nativeElement.focus();
+      return;
+    }
+    // Restore the saved range and insert the link
+    if (this.savedRange) {
+      const selection = window.getSelection();
+      selection?.removeAllRanges();
+      selection?.addRange(this.savedRange);
+      // Use Range API to wrap the selected text in an <a>
+      const range = this.savedRange;
+      if (!range.collapsed) {
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.target = '_blank';
+        anchor.rel = 'noopener noreferrer';
+        anchor.textContent = range.toString();
+        range.deleteContents();
+        range.insertNode(anchor);
+        // Move caret after the link
+        range.setStartAfter(anchor);
+        range.collapse(true);
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+      }
+    }
+    this.closeLinkPopover();
+    this.editorRef.nativeElement.focus();
+  }
+
+  closeLinkPopover() {
+    this.showLinkPopover.set(false);
+    this.linkInputValue.set('');
+    this.editingLinkNode.set(null);
+    this.savedRange = null;
+  }
+
+  // Gmail-style link popover logic
+  // (Removed: pointer hover logic, now popover only shows on caret-in-link)
+
+  onEditLink() {
+    const link = this.hoveredLinkNode();
+    if (!link) return;
+    // Show popover for editing, prefill value
+    const rect = link.getBoundingClientRect();
+    const editorRect = this.editorRef.nativeElement.getBoundingClientRect();
+    this.linkPopoverPosition.set({
+      top: rect.bottom - editorRect.top + 4,
+      left: rect.left - editorRect.left,
+    });
+    this.linkInputValue.set(link.href);
+    this.editingLinkNode.set(link);
+    this.showLinkPopover.set(true);
+    this.showLinkActionsPopover.set(false);
+    setTimeout(() => {
+      const input = document.getElementById('link-input-box');
+      if (input) (input as HTMLInputElement).focus();
+    }, 0);
+  }
+
+  onGoToLink() {
+    const link = this.hoveredLinkNode();
+    if (link) {
+      window.open(link.href, '_blank', 'noopener');
+    }
+  }
+
+  onRemoveLink() {
+    const link = this.hoveredLinkNode();
+    if (!link) return;
+    // Remove <a> but keep text
+    const parent = link.parentNode;
+    if (parent) {
+      while (link.firstChild) {
+        parent.insertBefore(link.firstChild, link);
+      }
+      parent.removeChild(link);
+    }
+    this.showLinkActionsPopover.set(false);
+    this.hoveredLinkNode.set(null);
   }
 
   onKeyDown(event: KeyboardEvent) {
@@ -121,6 +282,9 @@ export class RichTextEditorComponent {
         }
       }
     }
+    // Hide popovers on any key
+    this.showLinkActionsPopover.set(false);
+    this.hoveredLinkNode.set(null);
   }
 
   printHtml() {

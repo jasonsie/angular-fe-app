@@ -7,6 +7,7 @@
   Print HTML
 </button>
 
+
 <div
   #editor
   class="editor-area"
@@ -16,6 +17,84 @@
   [attr.aria-label]="'Rich Text Editor'"
   [innerHTML]="DefaultUL"
 ></div>
+
+@if (showLinkActionsPopover() && hoveredLinkNode()) {
+  <div
+    class="link-actions-popover mat-elevation-z8"
+    style="
+      position: absolute;
+      z-index: 1001;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(60,64,67,0.15);
+      padding: 10px 16px;
+      min-width: 330px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    "
+    [style.top.px]="linkActionsPosition()?.top ?? 0"
+    [style.left.px]="linkActionsPosition()?.left ?? 0"
+    (click)="$event.stopPropagation()"
+  >
+    <span style="color: #444;">Go to link:</span>
+    <a
+      [href]="hoveredLinkNode()?.href"
+      target="_blank"
+      rel="noopener noreferrer"
+      style="color: #1a0dab; text-decoration: underline; margin-right: 8px;"
+      (click)="onGoToLink()"
+    >{{ hoveredLinkNode()?.href }}</a>
+    <span style="margin-left: auto;"></span>
+    <a href="#" (click)="onEditLink(); $event.preventDefault();" style="color: #1a73e8; font-weight: 500; margin-right: 8px;">Change</a>
+    <a href="#" (click)="onRemoveLink(); $event.preventDefault();" style="color: #d93025; font-weight: 500;">Remove</a>
+  </div>
+}
+
+
+@if (showLinkPopover()) {
+  <div
+    class="link-popover mat-elevation-z8"
+    style="
+      position: absolute;
+      z-index: 1000;
+      background: var(--md-sys-color-surface, #fff);
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      padding: 16px 20px 12px 16px;
+      min-width: 260px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    "
+    [style.top.px]="linkPopoverPosition()?.top ?? 0"
+    [style.left.px]="linkPopoverPosition()?.left ?? 0"
+    (click)="$event.stopPropagation()"
+  >
+    <label for="link-input-box" style="font-size: 14px; color: var(--md-sys-color-on-surface, #333);">Insert link</label>
+    <input
+      id="link-input-box"
+      type="url"
+      placeholder="https://example.com"
+      [value]="linkInputValue()"
+      (input)="linkInputValue.set($any($event.target).value)"
+      style="
+        font-size: 15px;
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 1px solid var(--md-sys-color-outline, #ccc);
+        outline: none;
+        margin-bottom: 8px;
+      "
+      autocomplete="off"
+    />
+    <div style="display: flex; gap: 8px; justify-content: flex-end;">
+      <button type="button" (click)="applyLink()" style="background: var(--md-sys-color-primary, #1976d2); color: #fff; border: none; border-radius: 6px; padding: 6px 16px; font-weight: 500;">Apply</button>
+      <button type="button" (click)="closeLinkPopover()" style="background: none; color: var(--md-sys-color-on-surface, #333); border: none; border-radius: 6px; padding: 6px 16px;">Cancel</button>
+    </div>
+  </div>
+}
 
 <div *ngIf="htmlString" style="margin-top: 16px">
   <strong>HTML Output:</strong>
