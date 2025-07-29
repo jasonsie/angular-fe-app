@@ -5,10 +5,11 @@ import {
   ElementRef,
   input,
   afterNextRender,
-  Input,
   signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+
+export const DefaultUL: string = '<ul class="list-disc"><li></li></ul>';
 
 @Component({
   selector: 'app-rich-text-editor',
@@ -20,6 +21,7 @@ import { CommonModule } from '@angular/common';
 })
 export class RichTextEditorComponent {
   @ViewChild('editor', { static: true }) editorRef!: ElementRef<HTMLDivElement>;
+  DefaultUL = DefaultUL;
   htmlStringData = input<string>('');
   htmlString = signal<string>('');
 
@@ -45,7 +47,7 @@ export class RichTextEditorComponent {
   private sanitizeHtmlString(html: string | undefined | null): string {
     if (!html || typeof html !== 'string' || !html.trim()) {
       // Fallback to a default bullet list if htmlString is missing or empty
-      return '<ul class="list-disc"><li></li></ul>';
+      return DefaultUL;
     }
 
     return html;

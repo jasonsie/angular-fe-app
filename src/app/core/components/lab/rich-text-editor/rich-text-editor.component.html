@@ -14,7 +14,7 @@
   spellcheck="true"
   (keydown)="onKeyDown($event)"
   [attr.aria-label]="'Rich Text Editor'"
-  [innerHTML]="'<ul class=\'list-disc\'><li></li></ul>'"
+  [innerHTML]="DefaultUL"
 ></div>
 
 <div *ngIf="htmlString" style="margin-top: 16px">
