@@ -1,0 +1,23 @@
+<div class="editor-toolbar">
+  <button type="button" (click)="addLink()" aria-label="Insert Link">
+    🔗 Link
+  </button>
+</div>
+<button type="button" (click)="printHtml()" style="margin-bottom: 8px">
+  Print HTML
+</button>
+
+<div
+  #editor
+  class="editor-area"
+  contenteditable="true"
+  spellcheck="true"
+  (keydown)="onKeyDown($event)"
+  [attr.aria-label]="'Rich Text Editor'"
+  [innerHTML]="'<ul class=\'list-disc\'><li></li></ul>'"
+></div>
+
+<div *ngIf="htmlString" style="margin-top: 16px">
+  <strong>HTML Output:</strong>
+  <pre>{{ htmlString }}</pre>
+</div>
