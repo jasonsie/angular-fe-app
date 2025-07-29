@@ -24,11 +24,24 @@ export interface LinkToolConfig {
   linkButtonText?: string;
 }
 
+export interface BulletListConfig {
+  /** CSS class for the bullet list */
+  listClass?: string;
+  /** HTML element tag for the list container */
+  listTag?: 'ul' | 'ol';
+  /** If true, input text will be automatically transformed into bullet points */
+  autoTransformToBulletList?: boolean;
+  /** If true, the bullet list tool in toolbar will be disabled */
+  disableBulletListTool?: boolean;
+}
+
 export interface EditorConfig {
   /** Toolbar configuration */
   toolbar?: EditorToolbarConfig;
   /** Link tool specific configuration */
   linkTool?: LinkToolConfig;
+  /** Bullet list specific configuration */
+  bulletList?: BulletListConfig;
   /** Initial content for the editor */
   initialContent?: string;
   /** Enable/disable spellcheck */
@@ -51,6 +64,12 @@ export const DEFAULT_EDITOR_CONFIG: EditorConfig = {
     linkPlaceholder: 'https://example.com',
     linkAriaLabel: 'Insert Link',
     linkButtonText: '🔗 Link',
+  },
+  bulletList: {
+    listClass: 'list-disc',
+    listTag: 'ul',
+    autoTransformToBulletList: false,
+    disableBulletListTool: false,
   },
   spellcheck: true,
   editorAriaLabel: 'Rich Text Editor',

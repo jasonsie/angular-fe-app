@@ -48,8 +48,8 @@ interface DemoSection {
   },
 })
 export class LabComponent implements OnInit {
-  // Development configuration (with debug enabled)
-  readonly editorConfig: EditorConfig = {
+  // Default configuration (with debug enabled)
+  readonly defaultEditorConfig: EditorConfig = {
     toolbar: {
       enableLinkTool: true,
       enableDebugTool: true,
@@ -64,9 +64,62 @@ export class LabComponent implements OnInit {
       linkAriaLabel: 'Insert hyperlink',
       linkButtonText: '🔗 Insert Link',
     },
-    initialContent: '<ul class="list-disc"><li>This editor has all features enabled including debug mode...</li></ul>',
-    editorAriaLabel: 'Development Rich Text Editor',
+    bulletList: {
+      listClass: 'list-disc',
+      listTag: 'ul',
+      autoTransformToBulletList: false,
+      disableBulletListTool: false,
+    },
+    initialContent: 'This editor has default bullet list configuration...',
+    editorAriaLabel: 'Default Rich Text Editor',
   };
+
+  // Auto-transform configuration
+  readonly autoTransformConfig: EditorConfig = {
+    toolbar: {
+      enableLinkTool: true,
+      enableDebugTool: true,
+      enableBoldTool: true,
+      enableItalicTool: true,
+      enableUnderlineTool: true,
+      enableBulletListTool: true,
+      enableNumberedListTool: true,
+    },
+    bulletList: {
+      listClass: 'list-decimal',
+      listTag: 'ol',
+      autoTransformToBulletList: true,
+      disableBulletListTool: false,
+    },
+    initialContent: `First item
+Second item
+Third item`,
+    editorAriaLabel: 'Auto-Transform Rich Text Editor',
+  };
+
+  // Disabled bullet list tool configuration
+  readonly disabledBulletConfig: EditorConfig = {
+    toolbar: {
+      enableLinkTool: true,
+      enableDebugTool: true,
+      enableBoldTool: true,
+      enableItalicTool: true,
+      enableUnderlineTool: true,
+      enableBulletListTool: true, // This will be overridden by bulletList.disableBulletListTool
+      enableNumberedListTool: true,
+    },
+    bulletList: {
+      listClass: 'custom-bullet-list',
+      listTag: 'ul',
+      autoTransformToBulletList: false,
+      disableBulletListTool: true, // This disables the bullet list tool
+    },
+    initialContent: '<ul class="custom-bullet-list"><li>Bullet list tool is disabled</li><li>But bullet lists still work</li></ul>',
+    editorAriaLabel: 'Disabled Bullet Tool Rich Text Editor',
+  };
+
+  // For backward compatibility, keeping the original property name
+  readonly editorConfig = this.defaultEditorConfig;
 
   constructor() {}
 

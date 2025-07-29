@@ -7,12 +7,13 @@ import {
 import { CommonModule } from '@angular/common';
 import { LinkToolComponent, LinkState } from '../link-tool/link-tool.component';
 import { DebugToolComponent } from '../debug-tool/debug-tool.component';
-import { EditorToolbarConfig, LinkToolConfig } from '../../models/editor-config.model';
+import { BulletPointToolComponent, BulletPointState } from '../bullet-point-tool/bullet-point-tool.component';
+import { EditorToolbarConfig, LinkToolConfig, BulletListConfig } from '../../models/editor-config.model';
 
 @Component({
   selector: 'app-editor-toolbar',
   standalone: true,
-  imports: [CommonModule, LinkToolComponent, DebugToolComponent],
+  imports: [CommonModule, LinkToolComponent, DebugToolComponent, BulletPointToolComponent],
   template: `
     <div class="editor-toolbar">
       @if (toolbarConfig().enableLinkTool) {
@@ -27,6 +28,18 @@ import { EditorToolbarConfig, LinkToolConfig } from '../../models/editor-config.
           (goToLink)="onGoToLink($event)"
           (removeLink)="onRemoveLink($event)"
           (linkInputChange)="onLinkInputChange($event)"
+        />
+      }
+
+      @if (toolbarConfig().enableBulletListTool) {
+        <app-bullet-point-tool
+          [config]="bulletListConfig()"
+          [state]="bulletPointState()"
+          [isEnabled]="!!toolbarConfig().enableBulletListTool"
+          [showListInfo]="true"
+          (toggleBulletList)="onToggleBulletList()"
+          (createNewList)="onCreateNewList()"
+          (fixListStructure)="onFixListStructure()"
         />
       }
 
@@ -57,6 +70,8 @@ export class EditorToolbarComponent {
   readonly toolbarConfig = input.required<EditorToolbarConfig>();
   readonly linkToolConfig = input.required<LinkToolConfig>();
   readonly linkState = input.required<LinkState>();
+  readonly bulletListConfig = input.required<BulletListConfig>();
+  readonly bulletPointState = input.required<BulletPointState>();
   readonly debugHtmlContent = input<string>('');
 
   // Outputs - Link tool events
@@ -67,6 +82,11 @@ export class EditorToolbarComponent {
   readonly goToLink = output<HTMLAnchorElement>();
   readonly removeLink = output<HTMLAnchorElement>();
   readonly linkInputChange = output<string>();
+
+  // Outputs - Bullet point tool events
+  readonly toggleBulletList = output<void>();
+  readonly createNewList = output<void>();
+  readonly fixListStructure = output<void>();
 
   // Outputs - Debug tool events
   readonly printHtml = output<void>();
@@ -98,6 +118,19 @@ export class EditorToolbarComponent {
 
   onLinkInputChange(value: string): void {
     this.linkInputChange.emit(value);
+  }
+
+  // Bullet point tool event handlers
+  onToggleBulletList(): void {
+    this.toggleBulletList.emit();
+  }
+
+  onCreateNewList(): void {
+    this.createNewList.emit();
+  }
+
+  onFixListStructure(): void {
+    this.fixListStructure.emit();
   }
 
   // Debug tool event handlers

@@ -3,11 +3,33 @@
   align-items: flex-start;
   gap: 16px;
   margin-bottom: 8px;
+  flex-wrap: wrap;
 
   app-link-tool {
     display: flex;
     align-items: flex-start;
     gap: 16px;
     flex: 1;
+  }
+
+  app-bullet-point-tool {
+    display: flex;
+    align-items: flex-start;
+  }
+
+  // Ensure tools don't crowd each other
+  > * {
+    flex-shrink: 0;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .editor-toolbar {
+    gap: 12px;
+
+    app-link-tool {
+      gap: 12px;
+    }
   }
 }

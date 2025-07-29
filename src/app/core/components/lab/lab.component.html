@@ -1,11 +1,23 @@
 
 <div class="lab-container">
   <h1>Rich Text Editor Demo</h1>
-  <p>This demonstrates the configurable rich text editor with all features enabled including debug mode.</p>
+  <p>This demonstrates the configurable rich text editor with different bullet list configurations.</p>
 
   <section class="demo-section">
-    <h2>Rich Text Editor with Full Configuration</h2>
-    <p>All features enabled including link tool and debug mode for development:</p>
-    <app-rich-text-editor [config]="editorConfig" />
+    <h2>Default Configuration</h2>
+    <p>Standard bullet list configuration with all features enabled:</p>
+    <app-rich-text-editor [config]="defaultEditorConfig" />
+  </section>
+
+  <section class="demo-section">
+    <h2>Auto-Transform to Bullet List</h2>
+    <p>Text automatically transformed into numbered list (ordered list with decimal style):</p>
+    <app-rich-text-editor [config]="autoTransformConfig" />
+  </section>
+
+  <section class="demo-section">
+    <h2>Disabled Bullet List Tool</h2>
+    <p>Bullet list tool is disabled in toolbar, but bullet lists still work:</p>
+    <app-rich-text-editor [config]="disabledBulletConfig" />
   </section>
 </div>

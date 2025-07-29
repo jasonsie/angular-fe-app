@@ -41,6 +41,20 @@
   app-rich-text-editor {
     display: block;
     margin-top: 15px;
+
+    // Custom styling for different bullet list configurations
+    ::ng-deep {
+      .custom-bullet-list {
+        list-style-type: square;
+        color: #1976d2;
+        padding-left: 20px;
+
+        li {
+          margin-bottom: 8px;
+          color: #333;
+        }
+      }
+    }
   }
 
   &:last-child {

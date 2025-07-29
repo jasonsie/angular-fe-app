@@ -2,6 +2,8 @@
   [toolbarConfig]="toolbarConfig()"
   [linkToolConfig]="linkToolConfig()"
   [linkState]="linkState()"
+  [bulletListConfig]="bulletListConfig()"
+  [bulletPointState]="bulletPointState()"
   [debugHtmlContent]="htmlString()"
   (addLink)="onAddLink()"
   (applyLink)="onApplyLink($event)"
@@ -10,6 +12,9 @@
   (goToLink)="onGoToLink($event)"
   (removeLink)="onRemoveLink($event)"
   (linkInputChange)="onLinkInputChange($event)"
+  (toggleBulletList)="onToggleBulletList()"
+  (createNewList)="onCreateNewList()"
+  (fixListStructure)="onFixListStructure()"
   (printHtml)="onPrintHtml()"
 />
 

@@ -7,15 +7,19 @@ import {
   afterNextRender,
   signal,
   computed,
+  inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { EditorToolbarComponent } from './components/editor-toolbar/editor-toolbar.component';
 import { LinkState } from './components/link-tool/link-tool.component';
+import { BulletPointState } from './components/bullet-point-tool/bullet-point-tool.component';
+import { BulletPointService } from './services/bullet-point.service';
 import {
   EditorConfig,
   DEFAULT_EDITOR_CONFIG,
   EditorToolbarConfig,
-  LinkToolConfig
+  LinkToolConfig,
+  BulletListConfig
 } from './models/editor-config.model';
 
 const DEFAULT_BULLET_LIST = '<ul class="list-disc"><li></li></ul>';
@@ -31,21 +35,51 @@ const DEFAULT_BULLET_LIST = '<ul class="list-disc"><li></li></ul>';
 export class RichTextEditorComponent {
   @ViewChild('editor', { static: true }) editorRef!: ElementRef<HTMLDivElement>;
 
+  // Injected services
+  private readonly bulletPointService = inject(BulletPointService);
+
   // Configuration inputs
   readonly config = input<EditorConfig>(DEFAULT_EDITOR_CONFIG);
 
   // Computed configuration properties
-  readonly toolbarConfig = computed<EditorToolbarConfig>(() =>
-    this.config().toolbar || DEFAULT_EDITOR_CONFIG.toolbar!
-  );
+  readonly toolbarConfig = computed<EditorToolbarConfig>(() => {
+    const baseConfig = this.config().toolbar || DEFAULT_EDITOR_CONFIG.toolbar!;
+    const bulletConfig = this.bulletListConfig();
+
+    // Disable bullet list tool if configured to do so
+    if (bulletConfig.disableBulletListTool) {
+      return {
+        ...baseConfig,
+        enableBulletListTool: false
+      };
+    }
+
+    return baseConfig;
+  });
 
   readonly linkToolConfig = computed<LinkToolConfig>(() =>
     this.config().linkTool || DEFAULT_EDITOR_CONFIG.linkTool!
   );
 
-  readonly initialContent = computed(() =>
-    this.config().initialContent || DEFAULT_BULLET_LIST
+  readonly bulletListConfig = computed<BulletListConfig>(() =>
+    this.config().bulletList || DEFAULT_EDITOR_CONFIG.bulletList!
   );
+
+  readonly initialContent = computed(() => {
+    const content = this.config().initialContent;
+    const bulletConfig = this.bulletListConfig();
+
+    if (!content?.trim()) {
+      return this.bulletPointService.generateDefaultBulletList(bulletConfig);
+    }
+
+    // If autoTransformToBulletList is enabled, transform plain text to bullet list
+    if (bulletConfig.autoTransformToBulletList && !this.bulletPointService.isAlreadyBulletList(content, bulletConfig)) {
+      return this.bulletPointService.transformToBulletList(content, bulletConfig);
+    }
+
+    return content;
+  });
 
   // Editor state
   readonly htmlString = signal<string>('');
@@ -58,7 +92,21 @@ export class RichTextEditorComponent {
     hoveredLinkNode: null,
   });
 
-  private savedRange: Range | null = null;
+  // Bullet point state
+  readonly bulletPointState = computed<BulletPointState>(() => {
+    if (!this.editorRef?.nativeElement) {
+      return {
+        isActive: false,
+        currentListType: null,
+        listItemCount: 0
+      };
+    }
+
+    return this.bulletPointService.analyzeBulletPointState(
+      this.editorRef.nativeElement,
+      this.bulletListConfig()
+    );
+  });  private savedRange: Range | null = null;
 
   /**
    * Helper method to update link state immutably
@@ -126,7 +174,7 @@ export class RichTextEditorComponent {
    */
   private sanitizeContent(content: string | undefined | null): string {
     if (!content?.trim()) {
-      return DEFAULT_BULLET_LIST;
+      return this.bulletPointService.generateDefaultBulletList(this.bulletListConfig());
     }
     return content;
   }
@@ -291,87 +339,36 @@ export class RichTextEditorComponent {
    * Handles Enter key press to create new list items or fix list structure.
    */
   private handleEnterKey(): void {
-    const editor = this.editorRef.nativeElement;
-    const ul = editor.querySelector('ul.list-disc');
-    const hasValidStructure = ul && this.hasValidListStructure(ul);
+    const success = this.bulletPointService.handleEnterKey(
+      this.editorRef.nativeElement,
+      this.bulletListConfig()
+    );
 
-    if (!hasValidStructure) {
-      this.fixListStructure(editor);
-      return;
-    }
-
-    this.insertNewListItem();
-  }
-
-  /**
-   * Checks if the list has valid structure (all children are LI elements).
-   */
-  private hasValidListStructure(ul: Element): boolean {
-    return Array.from(ul.children).every(child => child.tagName === 'LI');
-  }
-
-  /**
-   * Fixes the list structure by wrapping content in proper UL/LI elements.
-   */
-  private fixListStructure(editor: HTMLElement): void {
-    const text = editor.textContent || '';
-    const items = text.split(/\n|\r/).map(t => t.trim()).filter(Boolean);
-    const liHtml = items.length
-      ? items.map(item => `<li>${item}</li>`).join('')
-      : '<li></li>';
-
-    editor.innerHTML = `<ul class="list-disc">${liHtml}</ul>`;
-    this.focusLastListItem(editor);
-  }
-
-  /**
-   * Inserts a new list item after the current one.
-   */
-  private insertNewListItem(): void {
-    const selection = window.getSelection();
-    if (!selection?.rangeCount) return;
-
-    const currentLi = this.findCurrentListItem(selection.getRangeAt(0));
-    if (currentLi?.parentNode) {
-      const newLi = document.createElement('li');
-      currentLi.parentNode.insertBefore(newLi, currentLi.nextSibling);
-      this.focusElement(newLi);
+    if (!success) {
+      // Fallback: insert a simple line break
+      document.execCommand('insertLineBreak');
     }
   }
 
   /**
-   * Finds the current list item from the selection range.
+   * Bullet point tool event handlers
    */
-  private findCurrentListItem(range: Range): HTMLElement | null {
-    let node: Node | null = range.startContainer;
-
-    while (node && (node.nodeType !== 1 || (node as HTMLElement).tagName !== 'LI')) {
-      node = node.parentNode;
-    }
-
-    return node as HTMLElement | null;
+  onToggleBulletList(): void {
+    this.bulletPointService.toggleBulletList(
+      this.editorRef.nativeElement,
+      this.bulletListConfig()
+    );
   }
 
-  /**
-   * Focuses the last list item in the editor.
-   */
-  private focusLastListItem(editor: HTMLElement): void {
-    const lastLi = editor.querySelector('ul.list-disc li:last-child');
-    if (lastLi) {
-      this.focusElement(lastLi as HTMLElement);
-    }
+  onCreateNewList(): void {
+    const bulletConfig = this.bulletListConfig();
+    this.editorRef.nativeElement.innerHTML = this.bulletPointService.generateDefaultBulletList(bulletConfig);
+    this.bulletPointService.focusLastListItem(this.editorRef.nativeElement, bulletConfig);
   }
 
-  /**
-   * Focuses an element by placing the caret at the end of its content.
-   */
-  private focusElement(element: HTMLElement): void {
-    const range = document.createRange();
-    range.selectNodeContents(element);
-    range.collapse(false);
-
-    const selection = window.getSelection();
-    selection?.removeAllRanges();
-    selection?.addRange(range);
+  onFixListStructure(): void {
+    const bulletConfig = this.bulletListConfig();
+    this.bulletPointService.fixListStructure(this.editorRef.nativeElement, bulletConfig);
+    this.bulletPointService.focusLastListItem(this.editorRef.nativeElement, bulletConfig);
   }
 }
