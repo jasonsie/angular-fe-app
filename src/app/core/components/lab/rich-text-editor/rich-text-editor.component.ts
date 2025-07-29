@@ -5,6 +5,8 @@ import {
   ElementRef,
   input,
   afterNextRender,
+  Input,
+  signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
@@ -18,7 +20,8 @@ import { CommonModule } from '@angular/common';
 })
 export class RichTextEditorComponent {
   @ViewChild('editor', { static: true }) editorRef!: ElementRef<HTMLDivElement>;
-  htmlString = input<string>();
+  htmlStringData = input<string>('');
+  htmlString = signal<string>('');
 
   constructor() {
     afterNextRender(() => {
@@ -31,7 +34,7 @@ export class RichTextEditorComponent {
    * Handles undefined or incomplete htmlString gracefully.
    */
   initHandler(): void {
-    const html = this.sanitizeHtmlString(this.htmlString());
+    const html = this.sanitizeHtmlString(this.htmlStringData());
     this.editorRef.nativeElement.innerHTML = html;
   }
 
@@ -121,6 +124,6 @@ export class RichTextEditorComponent {
   printHtml() {
     // Get the editor content
     let content = this.editorRef.nativeElement.innerHTML.trim();
-    console.log(`content`, content);
+    this.htmlString.set(content);
   }
 }
