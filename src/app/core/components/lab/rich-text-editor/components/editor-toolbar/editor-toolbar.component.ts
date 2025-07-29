@@ -7,40 +7,50 @@ import {
 import { CommonModule } from '@angular/common';
 import { LinkToolComponent, LinkState } from '../link-tool/link-tool.component';
 import { DebugToolComponent } from '../debug-tool/debug-tool.component';
-import { BulletPointToolComponent, BulletPointState } from '../bullet-point-tool/bullet-point-tool.component';
-import { EditorToolbarConfig, LinkToolConfig, BulletListConfig } from '../../models/editor-config.model';
+import {
+  BulletPointToolComponent,
+  BulletPointState,
+} from '../bullet-point-tool/bullet-point-tool.component';
+import {
+  EditorToolbarConfig,
+  LinkToolConfig,
+  BulletListConfig,
+} from '../../models/editor-config.model';
 
 @Component({
   selector: 'app-editor-toolbar',
   standalone: true,
-  imports: [CommonModule, LinkToolComponent, DebugToolComponent, BulletPointToolComponent],
+  imports: [
+    CommonModule,
+    LinkToolComponent,
+    DebugToolComponent,
+    BulletPointToolComponent,
+  ],
   template: `
     <div class="editor-toolbar">
-      @if (toolbarConfig().enableLinkTool) {
-        <app-link-tool
-          [config]="linkToolConfig()"
-          [linkState]="linkState()"
-          [isEnabled]="!!toolbarConfig().enableLinkTool"
-          (addLink)="onAddLink()"
-          (applyLink)="onApplyLink($event)"
-          (cancelLink)="onCancelLink()"
-          (editLink)="onEditLink($event)"
-          (goToLink)="onGoToLink($event)"
-          (removeLink)="onRemoveLink($event)"
-          (linkInputChange)="onLinkInputChange($event)"
-        />
-      }
-
       @if (toolbarConfig().enableBulletListTool) {
-        <app-bullet-point-tool
-          [config]="bulletListConfig()"
-          [state]="bulletPointState()"
-          [isEnabled]="!!toolbarConfig().enableBulletListTool"
-          [showListInfo]="true"
-          (toggleBulletList)="onToggleBulletList()"
-          (createNewList)="onCreateNewList()"
-          (fixListStructure)="onFixListStructure()"
-        />
+      <app-bullet-point-tool
+        [config]="bulletListConfig()"
+        [state]="bulletPointState()"
+        [isEnabled]="!!toolbarConfig().enableBulletListTool && !bulletListConfig().disableBulletListTool"
+        [showListInfo]="true"
+        (toggleBulletList)="onToggleBulletList()"
+        (createNewList)="onCreateNewList()"
+        (fixListStructure)="onFixListStructure()"
+      />
+      } @if (toolbarConfig().enableLinkTool) {
+      <app-link-tool
+        [config]="linkToolConfig()"
+        [linkState]="linkState()"
+        [isEnabled]="!!toolbarConfig().enableLinkTool"
+        (addLink)="onAddLink()"
+        (applyLink)="onApplyLink($event)"
+        (cancelLink)="onCancelLink()"
+        (editLink)="onEditLink($event)"
+        (goToLink)="onGoToLink($event)"
+        (removeLink)="onRemoveLink($event)"
+        (linkInputChange)="onLinkInputChange($event)"
+      />
       }
 
       <!-- Future toolbar features can be added here -->
@@ -55,11 +65,11 @@ import { EditorToolbarConfig, LinkToolConfig, BulletListConfig } from '../../mod
     </div>
 
     @if (toolbarConfig().enableDebugTool) {
-      <app-debug-tool
-        [isEnabled]="!!toolbarConfig().enableDebugTool"
-        [htmlContent]="debugHtmlContent()"
-        (printHtml)="onPrintHtml()"
-      />
+    <app-debug-tool
+      [isEnabled]="!!toolbarConfig().enableDebugTool"
+      [htmlContent]="debugHtmlContent()"
+      (printHtml)="onPrintHtml()"
+    />
     }
   `,
   styleUrls: ['./editor-toolbar.component.scss'],

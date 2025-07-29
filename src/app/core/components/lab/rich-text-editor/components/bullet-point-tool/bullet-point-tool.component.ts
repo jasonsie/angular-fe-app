@@ -20,30 +20,28 @@ export interface BulletPointState {
   standalone: true,
   imports: [CommonModule],
   template: `
-    @if (isEnabled()) {
-      <div class="bullet-point-tool">
-        <button
-          type="button"
-          class="tool-button"
-          [class.active]="state().isActive"
-          [disabled]="!isEnabled()"
-          (click)="onToggleBulletList()"
-          [attr.aria-label]="ariaLabel()"
-          [title]="tooltipText()"
-        >
-          {{ buttonText() }}
-        </button>
+    <div class="bullet-point-tool">
+      <button
+        type="button"
+        class="tool-button"
+        [class.active]="state().isActive"
+        [disabled]="!isEnabled()"
+        (click)="onToggleBulletList()"
+        [attr.aria-label]="ariaLabel()"
+        [title]="tooltipText()"
+      >
+        {{ buttonText() }}
+      </button>
 
-        @if (showListInfo()) {
-          <div class="list-info">
-            <span class="list-type">{{ listTypeDisplay() }}</span>
-            @if (state().listItemCount > 0) {
-              <span class="item-count">{{ state().listItemCount }} items</span>
-            }
-          </div>
-        }
-      </div>
-    }
+      @if (showListInfo()) {
+        <div class="list-info">
+          <span class="list-type">{{ listTypeDisplay() }}</span>
+          @if (state().listItemCount > 0) {
+            <span class="item-count">{{ state().listItemCount }} items</span>
+          }
+        </div>
+      }
+    </div>
   `,
   styleUrls: ['./bullet-point-tool.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,

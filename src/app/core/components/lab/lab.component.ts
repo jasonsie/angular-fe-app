@@ -3,39 +3,6 @@ import { RichTextEditorComponent } from './rich-text-editor/rich-text-editor.com
 import type { EditorConfig } from './rich-text-editor/models/editor-config.model';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
-import {
-  MatCard,
-  MatCardContent,
-  MatCardHeader,
-  MatCardTitle,
-} from '@angular/material/card';
-import { MatButton, MatIconButton } from '@angular/material/button';
-import { MatIcon } from '@angular/material/icon';
-import { MatFormField, MatLabel, MatError } from '@angular/material/form-field';
-import { MatInput } from '@angular/material/input';
-import { MatSelect } from '@angular/material/select';
-import { MatOption } from '@angular/material/core';
-import { MatCheckbox } from '@angular/material/checkbox';
-import { MatRadioButton, MatRadioGroup } from '@angular/material/radio';
-import { MatSlider, MatSliderThumb } from '@angular/material/slider';
-import { MatChipListbox, MatChipOption } from '@angular/material/chips';
-import { MatProgressBar } from '@angular/material/progress-bar';
-import { MatDivider } from '@angular/material/divider';
-import {
-  MatExpansionPanel,
-  MatExpansionPanelHeader,
-  MatExpansionPanelTitle,
-  MatAccordion,
-} from '@angular/material/expansion';
-import { MatTab, MatTabGroup } from '@angular/material/tabs';
-
-interface DemoSection {
-  title: string;
-  description: string;
-  icon: string;
-  expanded: boolean;
-}
-
 @Component({
   selector: 'app-lab',
   standalone: true,
@@ -67,10 +34,11 @@ export class LabComponent implements OnInit {
     bulletList: {
       listClass: 'list-disc',
       listTag: 'ul',
-      autoTransformToBulletList: false,
-      disableBulletListTool: false,
+      autoTransformToBulletList: true, // Don't auto-transform since we're providing HTML
+      disableBulletListTool: true, // Disable the button functionality
     },
-    initialContent: 'This editor has default bullet list configuration...',
+    initialContent:
+      'This is the pure string',
     editorAriaLabel: 'Default Rich Text Editor',
   };
 
@@ -114,7 +82,8 @@ Third item`,
       autoTransformToBulletList: false,
       disableBulletListTool: true, // This disables the bullet list tool
     },
-    initialContent: '<ul class="custom-bullet-list"><li>Bullet list tool is disabled</li><li>But bullet lists still work</li></ul>',
+    initialContent:
+      '<ul class="custom-bullet-list"><li>Bullet list tool is disabled</li><li>But bullet lists still work</li></ul>',
     editorAriaLabel: 'Disabled Bullet Tool Rich Text Editor',
   };
 

@@ -19,10 +19,8 @@ import {
   DEFAULT_EDITOR_CONFIG,
   EditorToolbarConfig,
   LinkToolConfig,
-  BulletListConfig
+  BulletListConfig,
 } from './models/editor-config.model';
-
-const DEFAULT_BULLET_LIST = '<ul class="list-disc"><li></li></ul>';
 
 @Component({
   selector: 'app-rich-text-editor',
@@ -44,25 +42,17 @@ export class RichTextEditorComponent {
   // Computed configuration properties
   readonly toolbarConfig = computed<EditorToolbarConfig>(() => {
     const baseConfig = this.config().toolbar || DEFAULT_EDITOR_CONFIG.toolbar!;
-    const bulletConfig = this.bulletListConfig();
-
-    // Disable bullet list tool if configured to do so
-    if (bulletConfig.disableBulletListTool) {
-      return {
-        ...baseConfig,
-        enableBulletListTool: false
-      };
-    }
-
+    // Return the base config without modifying enableBulletListTool
+    // The disableBulletListTool property will be handled in the bullet-point-tool component
     return baseConfig;
   });
 
-  readonly linkToolConfig = computed<LinkToolConfig>(() =>
-    this.config().linkTool || DEFAULT_EDITOR_CONFIG.linkTool!
+  readonly linkToolConfig = computed<LinkToolConfig>(
+    () => this.config().linkTool || DEFAULT_EDITOR_CONFIG.linkTool!
   );
 
-  readonly bulletListConfig = computed<BulletListConfig>(() =>
-    this.config().bulletList || DEFAULT_EDITOR_CONFIG.bulletList!
+  readonly bulletListConfig = computed<BulletListConfig>(
+    () => this.config().bulletList || DEFAULT_EDITOR_CONFIG.bulletList!
   );
 
   readonly initialContent = computed(() => {
@@ -74,8 +64,14 @@ export class RichTextEditorComponent {
     }
 
     // If autoTransformToBulletList is enabled, transform plain text to bullet list
-    if (bulletConfig.autoTransformToBulletList && !this.bulletPointService.isAlreadyBulletList(content, bulletConfig)) {
-      return this.bulletPointService.transformToBulletList(content, bulletConfig);
+    if (
+      bulletConfig.autoTransformToBulletList &&
+      !this.bulletPointService.isAlreadyBulletList(content, bulletConfig)
+    ) {
+      return this.bulletPointService.transformToBulletList(
+        content,
+        bulletConfig
+      );
     }
 
     return content;
@@ -98,7 +94,7 @@ export class RichTextEditorComponent {
       return {
         isActive: false,
         currentListType: null,
-        listItemCount: 0
+        listItemCount: 0,
       };
     }
 
@@ -106,13 +102,14 @@ export class RichTextEditorComponent {
       this.editorRef.nativeElement,
       this.bulletListConfig()
     );
-  });  private savedRange: Range | null = null;
+  });
+  private savedRange: Range | null = null;
 
   /**
    * Helper method to update link state immutably
    */
   private updateLinkState(updates: Partial<LinkState>): void {
-    this.linkState.update(current => ({ ...current, ...updates }));
+    this.linkState.update((current) => ({ ...current, ...updates }));
   }
 
   constructor() {
@@ -157,7 +154,8 @@ export class RichTextEditorComponent {
    * Finds the closest anchor element from a given node.
    */
   private findAnchorElement(node: Node): HTMLAnchorElement | null {
-    let currentNode: Node | null = node.nodeType === Node.TEXT_NODE ? node.parentElement : node;
+    let currentNode: Node | null =
+      node.nodeType === Node.TEXT_NODE ? node.parentElement : node;
 
     while (currentNode && currentNode !== this.editorRef.nativeElement) {
       if ((currentNode as HTMLElement).tagName === 'A') {
@@ -174,7 +172,9 @@ export class RichTextEditorComponent {
    */
   private sanitizeContent(content: string | undefined | null): string {
     if (!content?.trim()) {
-      return this.bulletPointService.generateDefaultBulletList(this.bulletListConfig());
+      return this.bulletPointService.generateDefaultBulletList(
+        this.bulletListConfig()
+      );
     }
     return content;
   }
@@ -267,7 +267,10 @@ export class RichTextEditorComponent {
   /**
    * Updates an existing link's href attribute.
    */
-  private updateExistingLink(linkElement: HTMLAnchorElement, url: string): void {
+  private updateExistingLink(
+    linkElement: HTMLAnchorElement,
+    url: string
+  ): void {
     linkElement.href = url;
   }
 
@@ -293,7 +296,10 @@ export class RichTextEditorComponent {
   /**
    * Creates a new anchor element with proper attributes.
    */
-  private createAnchorElement(href: string, textContent: string): HTMLAnchorElement {
+  private createAnchorElement(
+    href: string,
+    textContent: string
+  ): HTMLAnchorElement {
     const anchor = document.createElement('a');
     anchor.href = href;
     anchor.target = '_blank';
@@ -320,7 +326,9 @@ export class RichTextEditorComponent {
    */
   private focusLinkInput(): void {
     setTimeout(() => {
-      const input = document.getElementById('link-input-box') as HTMLInputElement;
+      const input = document.getElementById(
+        'link-input-box'
+      ) as HTMLInputElement;
       input?.focus();
     }, 0);
   }
@@ -362,13 +370,23 @@ export class RichTextEditorComponent {
 
   onCreateNewList(): void {
     const bulletConfig = this.bulletListConfig();
-    this.editorRef.nativeElement.innerHTML = this.bulletPointService.generateDefaultBulletList(bulletConfig);
-    this.bulletPointService.focusLastListItem(this.editorRef.nativeElement, bulletConfig);
+    this.editorRef.nativeElement.innerHTML =
+      this.bulletPointService.generateDefaultBulletList(bulletConfig);
+    this.bulletPointService.focusLastListItem(
+      this.editorRef.nativeElement,
+      bulletConfig
+    );
   }
 
   onFixListStructure(): void {
     const bulletConfig = this.bulletListConfig();
-    this.bulletPointService.fixListStructure(this.editorRef.nativeElement, bulletConfig);
-    this.bulletPointService.focusLastListItem(this.editorRef.nativeElement, bulletConfig);
+    this.bulletPointService.fixListStructure(
+      this.editorRef.nativeElement,
+      bulletConfig
+    );
+    this.bulletPointService.focusLastListItem(
+      this.editorRef.nativeElement,
+      bulletConfig
+    );
   }
 }
