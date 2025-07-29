@@ -9,11 +9,6 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-interface PopoverPosition {
-  top: number;
-  left: number;
-}
-
 const DEFAULT_BULLET_LIST = '<ul class="list-disc"><li></li></ul>';
 
 @Component({
@@ -31,15 +26,10 @@ export class RichTextEditorComponent {
   readonly initialContent = input<string>(DEFAULT_BULLET_LIST);
   readonly htmlString = signal<string>('');
 
-  // Link input popover state
-  readonly showLinkPopover = signal(false);
-  readonly linkPopoverPosition = signal<PopoverPosition | null>(null);
+  // Link management state
+  readonly showLinkPanel = signal(false);
   readonly linkInputValue = signal('');
   readonly editingLinkNode = signal<HTMLAnchorElement | null>(null);
-
-  // Link actions popover state
-  readonly showLinkActionsPopover = signal(false);
-  readonly linkActionsPosition = signal<PopoverPosition | null>(null);
   readonly hoveredLinkNode = signal<HTMLAnchorElement | null>(null);
 
   private savedRange: Range | null = null;
@@ -69,21 +59,17 @@ export class RichTextEditorComponent {
   }
 
   /**
-   * Handles caret position changes to show link actions popover when inside a link.
+   * Handles caret position changes to detect when inside a link.
    */
   private handleCaretInLink = (): void => {
     const selection = window.getSelection();
     if (!selection?.anchorNode) {
-      this.hideLinkActionsPopover();
+      this.hoveredLinkNode.set(null);
       return;
     }
 
     const linkElement = this.findAnchorElement(selection.anchorNode);
-    if (linkElement) {
-      this.showLinkActionsPopoverAt(linkElement);
-    } else {
-      this.hideLinkActionsPopover();
-    }
+    this.hoveredLinkNode.set(linkElement);
   };
 
   /**
@@ -103,41 +89,6 @@ export class RichTextEditorComponent {
   }
 
   /**
-   * Shows the link actions popover at the specified link element.
-   */
-  private showLinkActionsPopoverAt(linkElement: HTMLAnchorElement): void {
-    const position = this.calculatePopoverPosition(linkElement);
-    this.linkActionsPosition.set(position);
-    this.hoveredLinkNode.set(linkElement);
-    this.showLinkActionsPopover.set(true);
-  }
-
-  /**
-   * Hides the link actions popover.
-   */
-  private hideLinkActionsPopover(): void {
-    this.showLinkActionsPopover.set(false);
-    this.hoveredLinkNode.set(null);
-  }
-
-  /**
-   * Calculates popover position relative to editor.
-   */
-  private calculatePopoverPosition(element: HTMLElement): PopoverPosition;
-  private calculatePopoverPosition(rect: DOMRect): PopoverPosition;
-  private calculatePopoverPosition(elementOrRect: HTMLElement | DOMRect): PopoverPosition {
-    const rect = elementOrRect instanceof HTMLElement 
-      ? elementOrRect.getBoundingClientRect() 
-      : elementOrRect;
-    const editorRect = this.editorRef.nativeElement.getBoundingClientRect();
-    
-    return {
-      top: rect.bottom - editorRect.top + 4,
-      left: rect.left - editorRect.left,
-    };
-  }
-
-  /**
    * Sanitizes and validates the input content.
    */
   private sanitizeContent(content: string | undefined | null): string {
@@ -148,7 +99,7 @@ export class RichTextEditorComponent {
   }
 
   /**
-   * Initiates the link creation process by showing the link input popover.
+   * Initiates the link creation process by showing the link panel.
    */
   addLink(): void {
     const selection = window.getSelection();
@@ -159,11 +110,9 @@ export class RichTextEditorComponent {
     const range = selection.getRangeAt(0);
     this.savedRange = range.cloneRange();
     
-    const position = this.calculatePopoverPosition(range.getBoundingClientRect());
-    this.linkPopoverPosition.set(position);
     this.linkInputValue.set('');
     this.editingLinkNode.set(null);
-    this.showLinkPopover.set(true);
+    this.showLinkPanel.set(true);
     
     this.focusLinkInput();
   }
@@ -174,7 +123,7 @@ export class RichTextEditorComponent {
   applyLink(): void {
     const url = this.linkInputValue().trim();
     if (!url) {
-      this.closeLinkPopover();
+      this.closeLinkPanel();
       return;
     }
 
@@ -185,7 +134,7 @@ export class RichTextEditorComponent {
       this.createNewLink(url);
     }
     
-    this.closeLinkPopover();
+    this.closeLinkPanel();
     this.editorRef.nativeElement.focus();
   }
 
@@ -251,28 +200,25 @@ export class RichTextEditorComponent {
   }
 
   /**
-   * Closes the link input popover and resets its state.
+   * Closes the link panel and resets its state.
    */
-  closeLinkPopover(): void {
-    this.showLinkPopover.set(false);
+  closeLinkPanel(): void {
+    this.showLinkPanel.set(false);
     this.linkInputValue.set('');
     this.editingLinkNode.set(null);
     this.savedRange = null;
   }
 
   /**
-   * Opens the link editing popover for an existing link.
+   * Opens the link editing panel for an existing link.
    */
   onEditLink(): void {
     const link = this.hoveredLinkNode();
     if (!link) return;
 
-    const position = this.calculatePopoverPosition(link);
-    this.linkPopoverPosition.set(position);
     this.linkInputValue.set(link.href);
     this.editingLinkNode.set(link);
-    this.showLinkPopover.set(true);
-    this.showLinkActionsPopover.set(false);
+    this.showLinkPanel.set(true);
     
     this.focusLinkInput();
   }
@@ -300,15 +246,13 @@ export class RichTextEditorComponent {
     }
     link.parentNode.removeChild(link);
     
-    this.hideLinkActionsPopover();
+    this.hoveredLinkNode.set(null);
   }
 
   /**
    * Handles keyboard events, specifically Enter key for creating new list items.
    */
   onKeyDown(event: KeyboardEvent): void {
-    this.hideLinkActionsPopover();
-
     if (event.key === 'Enter') {
       event.preventDefault();
       this.handleEnterKey();
