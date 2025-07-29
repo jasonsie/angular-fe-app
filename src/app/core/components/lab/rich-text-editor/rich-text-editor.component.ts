@@ -6,15 +6,24 @@ import {
   input,
   afterNextRender,
   signal,
+  computed,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { EditorToolbarComponent } from './components/editor-toolbar/editor-toolbar.component';
+import { LinkState } from './components/link-tool/link-tool.component';
+import {
+  EditorConfig,
+  DEFAULT_EDITOR_CONFIG,
+  EditorToolbarConfig,
+  LinkToolConfig
+} from './models/editor-config.model';
 
 const DEFAULT_BULLET_LIST = '<ul class="list-disc"><li></li></ul>';
 
 @Component({
   selector: 'app-rich-text-editor',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, EditorToolbarComponent],
   templateUrl: './rich-text-editor.component.html',
   styleUrls: ['./rich-text-editor.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -22,17 +31,41 @@ const DEFAULT_BULLET_LIST = '<ul class="list-disc"><li></li></ul>';
 export class RichTextEditorComponent {
   @ViewChild('editor', { static: true }) editorRef!: ElementRef<HTMLDivElement>;
 
-  readonly DefaultUL = DEFAULT_BULLET_LIST;
-  readonly initialContent = input<string>(DEFAULT_BULLET_LIST);
+  // Configuration inputs
+  readonly config = input<EditorConfig>(DEFAULT_EDITOR_CONFIG);
+
+  // Computed configuration properties
+  readonly toolbarConfig = computed<EditorToolbarConfig>(() =>
+    this.config().toolbar || DEFAULT_EDITOR_CONFIG.toolbar!
+  );
+
+  readonly linkToolConfig = computed<LinkToolConfig>(() =>
+    this.config().linkTool || DEFAULT_EDITOR_CONFIG.linkTool!
+  );
+
+  readonly initialContent = computed(() =>
+    this.config().initialContent || DEFAULT_BULLET_LIST
+  );
+
+  // Editor state
   readonly htmlString = signal<string>('');
 
   // Link management state
-  readonly showLinkPanel = signal(false);
-  readonly linkInputValue = signal('');
-  readonly editingLinkNode = signal<HTMLAnchorElement | null>(null);
-  readonly hoveredLinkNode = signal<HTMLAnchorElement | null>(null);
+  readonly linkState = signal<LinkState>({
+    showLinkPanel: false,
+    linkInputValue: '',
+    editingLinkNode: null,
+    hoveredLinkNode: null,
+  });
 
   private savedRange: Range | null = null;
+
+  /**
+   * Helper method to update link state immutably
+   */
+  private updateLinkState(updates: Partial<LinkState>): void {
+    this.linkState.update(current => ({ ...current, ...updates }));
+  }
 
   constructor() {
     afterNextRender(() => {
@@ -64,12 +97,12 @@ export class RichTextEditorComponent {
   private handleCaretInLink = (): void => {
     const selection = window.getSelection();
     if (!selection?.anchorNode) {
-      this.hoveredLinkNode.set(null);
+      this.updateLinkState({ hoveredLinkNode: null });
       return;
     }
 
     const linkElement = this.findAnchorElement(selection.anchorNode);
-    this.hoveredLinkNode.set(linkElement);
+    this.updateLinkState({ hoveredLinkNode: linkElement });
   };
 
   /**
@@ -77,14 +110,14 @@ export class RichTextEditorComponent {
    */
   private findAnchorElement(node: Node): HTMLAnchorElement | null {
     let currentNode: Node | null = node.nodeType === Node.TEXT_NODE ? node.parentElement : node;
-    
+
     while (currentNode && currentNode !== this.editorRef.nativeElement) {
       if ((currentNode as HTMLElement).tagName === 'A') {
         return currentNode as HTMLAnchorElement;
       }
       currentNode = currentNode.parentNode;
     }
-    
+
     return null;
   }
 
@@ -99,9 +132,10 @@ export class RichTextEditorComponent {
   }
 
   /**
-   * Initiates the link creation process by showing the link panel.
+   * Toolbar event handlers - these delegate to the appropriate state management methods
    */
-  addLink(): void {
+
+  onAddLink(): void {
     const selection = window.getSelection();
     if (!selection?.rangeCount || selection.isCollapsed) {
       return;
@@ -109,33 +143,77 @@ export class RichTextEditorComponent {
 
     const range = selection.getRangeAt(0);
     this.savedRange = range.cloneRange();
-    
-    this.linkInputValue.set('');
-    this.editingLinkNode.set(null);
-    this.showLinkPanel.set(true);
-    
+
+    this.updateLinkState({
+      linkInputValue: '',
+      editingLinkNode: null,
+      showLinkPanel: true,
+    });
+
     this.focusLinkInput();
   }
 
-  /**
-   * Applies the link to the selected text or updates an existing link.
-   */
-  applyLink(): void {
-    const url = this.linkInputValue().trim();
-    if (!url) {
-      this.closeLinkPanel();
+  onApplyLink(url: string): void {
+    if (!url.trim()) {
+      this.onCancelLink();
       return;
     }
 
-    const editingNode = this.editingLinkNode();
-    if (editingNode) {
-      this.updateExistingLink(editingNode, url);
+    const currentState = this.linkState();
+    if (currentState.editingLinkNode) {
+      this.updateExistingLink(currentState.editingLinkNode, url);
     } else {
       this.createNewLink(url);
     }
-    
-    this.closeLinkPanel();
+
+    this.onCancelLink();
     this.editorRef.nativeElement.focus();
+  }
+
+  onCancelLink(): void {
+    this.updateLinkState({
+      showLinkPanel: false,
+      linkInputValue: '',
+      editingLinkNode: null,
+    });
+    this.savedRange = null;
+  }
+
+  onEditLink(link: HTMLAnchorElement): void {
+    this.updateLinkState({
+      linkInputValue: link.href,
+      editingLinkNode: link,
+      showLinkPanel: true,
+    });
+
+    this.focusLinkInput();
+  }
+
+  onGoToLink(link: HTMLAnchorElement): void {
+    if (link.href) {
+      window.open(link.href, '_blank', 'noopener');
+    }
+  }
+
+  onRemoveLink(link: HTMLAnchorElement): void {
+    if (!link.parentNode) return;
+
+    // Move all child nodes before the link, then remove the link
+    while (link.firstChild) {
+      link.parentNode.insertBefore(link.firstChild, link);
+    }
+    link.parentNode.removeChild(link);
+
+    this.updateLinkState({ hoveredLinkNode: null });
+  }
+
+  onLinkInputChange(value: string): void {
+    this.updateLinkState({ linkInputValue: value });
+  }
+
+  onPrintHtml(): void {
+    const content = this.editorRef.nativeElement.innerHTML.trim();
+    this.htmlString.set(content);
   }
 
   /**
@@ -160,7 +238,7 @@ export class RichTextEditorComponent {
     const anchor = this.createAnchorElement(url, this.savedRange.toString());
     this.savedRange.deleteContents();
     this.savedRange.insertNode(anchor);
-    
+
     this.moveCaretAfterElement(anchor);
   }
 
@@ -183,7 +261,7 @@ export class RichTextEditorComponent {
     const range = document.createRange();
     range.setStartAfter(element);
     range.collapse(true);
-    
+
     const selection = window.getSelection();
     selection?.removeAllRanges();
     selection?.addRange(range);
@@ -197,56 +275,6 @@ export class RichTextEditorComponent {
       const input = document.getElementById('link-input-box') as HTMLInputElement;
       input?.focus();
     }, 0);
-  }
-
-  /**
-   * Closes the link panel and resets its state.
-   */
-  closeLinkPanel(): void {
-    this.showLinkPanel.set(false);
-    this.linkInputValue.set('');
-    this.editingLinkNode.set(null);
-    this.savedRange = null;
-  }
-
-  /**
-   * Opens the link editing panel for an existing link.
-   */
-  onEditLink(): void {
-    const link = this.hoveredLinkNode();
-    if (!link) return;
-
-    this.linkInputValue.set(link.href);
-    this.editingLinkNode.set(link);
-    this.showLinkPanel.set(true);
-    
-    this.focusLinkInput();
-  }
-
-  /**
-   * Opens the current link in a new tab.
-   */
-  onGoToLink(): void {
-    const link = this.hoveredLinkNode();
-    if (link?.href) {
-      window.open(link.href, '_blank', 'noopener');
-    }
-  }
-
-  /**
-   * Removes the link while preserving its text content.
-   */
-  onRemoveLink(): void {
-    const link = this.hoveredLinkNode();
-    if (!link?.parentNode) return;
-
-    // Move all child nodes before the link, then remove the link
-    while (link.firstChild) {
-      link.parentNode.insertBefore(link.firstChild, link);
-    }
-    link.parentNode.removeChild(link);
-    
-    this.hoveredLinkNode.set(null);
   }
 
   /**
@@ -288,10 +316,10 @@ export class RichTextEditorComponent {
   private fixListStructure(editor: HTMLElement): void {
     const text = editor.textContent || '';
     const items = text.split(/\n|\r/).map(t => t.trim()).filter(Boolean);
-    const liHtml = items.length 
-      ? items.map(item => `<li>${item}</li>`).join('') 
+    const liHtml = items.length
+      ? items.map(item => `<li>${item}</li>`).join('')
       : '<li></li>';
-    
+
     editor.innerHTML = `<ul class="list-disc">${liHtml}</ul>`;
     this.focusLastListItem(editor);
   }
@@ -316,11 +344,11 @@ export class RichTextEditorComponent {
    */
   private findCurrentListItem(range: Range): HTMLElement | null {
     let node: Node | null = range.startContainer;
-    
+
     while (node && (node.nodeType !== 1 || (node as HTMLElement).tagName !== 'LI')) {
       node = node.parentNode;
     }
-    
+
     return node as HTMLElement | null;
   }
 
@@ -341,17 +369,9 @@ export class RichTextEditorComponent {
     const range = document.createRange();
     range.selectNodeContents(element);
     range.collapse(false);
-    
+
     const selection = window.getSelection();
     selection?.removeAllRanges();
     selection?.addRange(range);
-  }
-
-  /**
-   * Prints the current HTML content to the htmlString signal for debugging.
-   */
-  printHtml(): void {
-    const content = this.editorRef.nativeElement.innerHTML.trim();
-    this.htmlString.set(content);
   }
 }

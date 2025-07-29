@@ -1,0 +1,136 @@
+.link-tool-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  flex: 1;
+}
+
+.toolbar-button {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  flex-shrink: 0; /* Prevent button from shrinking */
+
+  &:hover {
+    background: #f5f5f5;
+  }
+
+  &:focus {
+    outline: 2px solid #1976d2;
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+
+    &:hover {
+      background: #fff;
+    }
+  }
+}
+
+.link-panel {
+  flex: 1;
+
+  .link-input-section,
+  .link-actions-section {
+    padding: 12px 16px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+  }  .panel-label {
+    color: #444;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .link-input {
+    flex: 1;
+    font-size: 14px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    outline: none;
+    font-family: inherit;
+
+    &:focus {
+      border-color: #1976d2;
+      box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+    }
+
+    &::placeholder {
+      color: #999;
+    }
+  }
+
+  .link-preview {
+    color: #1a0dab;
+    text-decoration: underline;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    &:hover {
+      color: #0066cc;
+    }
+  }
+
+  .panel-actions,
+  .actions {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+
+    button {
+      border: none;
+      background: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-weight: 500;
+      cursor: pointer;
+      font-size: 13px;
+
+      &.btn-primary {
+        background: #1976d2;
+        color: #fff;
+
+        &:hover {
+          background: #1565c0;
+        }
+      }
+
+      &.btn-secondary {
+        color: #333;
+
+        &:hover {
+          background: #f5f5f5;
+        }
+      }
+
+      &.action-change {
+        color: #1a73e8;
+
+        &:hover {
+          background: #e8f0fe;
+        }
+      }
+
+      &.action-remove {
+        color: #d93025;
+
+        &:hover {
+          background: #fce8e6;
+        }
+      }
+    }
+  }
+}

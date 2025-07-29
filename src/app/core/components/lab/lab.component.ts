@@ -1,5 +1,6 @@
 import { Component, ChangeDetectionStrategy, OnInit } from '@angular/core';
 import { RichTextEditorComponent } from './rich-text-editor/rich-text-editor.component';
+import type { EditorConfig } from './rich-text-editor/models/editor-config.model';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import {
@@ -47,7 +48,28 @@ interface DemoSection {
   },
 })
 export class LabComponent implements OnInit {
+  // Development configuration (with debug enabled)
+  readonly editorConfig: EditorConfig = {
+    toolbar: {
+      enableLinkTool: true,
+      enableDebugTool: true,
+      enableBoldTool: true,
+      enableItalicTool: true,
+      enableUnderlineTool: true,
+      enableBulletListTool: true,
+      enableNumberedListTool: true,
+    },
+    linkTool: {
+      linkPlaceholder: 'Enter your URL here...',
+      linkAriaLabel: 'Insert hyperlink',
+      linkButtonText: '🔗 Insert Link',
+    },
+    initialContent: '<ul class="list-disc"><li>This editor has all features enabled including debug mode...</li></ul>',
+    editorAriaLabel: 'Development Rich Text Editor',
+  };
+
   constructor() {}
+
   ngOnInit() {
     // Initialization logic can go here
   }

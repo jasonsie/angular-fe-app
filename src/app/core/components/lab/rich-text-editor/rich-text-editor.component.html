@@ -1,66 +1,24 @@
-<div class="editor-toolbar">
-  <button type="button" (click)="addLink()" aria-label="Insert Link">
-    🔗 Link
-  </button>
-
-  <!-- Link Management Panel -->
-  <div class="link-panel">
-    @if (showLinkPanel()) {
-      <div class="link-input-section">
-        <label for="link-input-box" class="panel-label">Insert link</label>
-        <input
-          id="link-input-box"
-          type="url"
-          placeholder="https://example.com"
-          class="link-input"
-          [value]="linkInputValue()"
-          (input)="linkInputValue.set($any($event.target).value)"
-          autocomplete="off"
-        />
-        <div class="panel-actions">
-          <button type="button" (click)="applyLink()" class="btn-primary">Apply</button>
-          <button type="button" (click)="closeLinkPanel()" class="btn-secondary">Cancel</button>
-        </div>
-      </div>
-    }
-
-    @if (hoveredLinkNode() && !showLinkPanel()) {
-      <div class="link-actions-section">
-        <span class="panel-label">Current link:</span>
-        <a
-          [href]="hoveredLinkNode()?.href"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="link-preview"
-          (click)="onGoToLink()"
-        >{{ hoveredLinkNode()?.href }}</a>
-
-        <div class="actions">
-          <button type="button" (click)="onEditLink()" class="action-change">Change</button>
-          <button type="button" (click)="onRemoveLink()" class="action-remove">Remove</button>
-        </div>
-      </div>
-    }
-  </div>
-</div>
-
-<button type="button" (click)="printHtml()" class="debug-button">
-  Print HTML
-</button>
+<app-editor-toolbar
+  [toolbarConfig]="toolbarConfig()"
+  [linkToolConfig]="linkToolConfig()"
+  [linkState]="linkState()"
+  [debugHtmlContent]="htmlString()"
+  (addLink)="onAddLink()"
+  (applyLink)="onApplyLink($event)"
+  (cancelLink)="onCancelLink()"
+  (editLink)="onEditLink($event)"
+  (goToLink)="onGoToLink($event)"
+  (removeLink)="onRemoveLink($event)"
+  (linkInputChange)="onLinkInputChange($event)"
+  (printHtml)="onPrintHtml()"
+/>
 
 <div
   #editor
   class="editor-area"
   contenteditable="true"
-  spellcheck="true"
+  [attr.spellcheck]="config().spellcheck ?? true"
   (keydown)="onKeyDown($event)"
-  [attr.aria-label]="'Rich Text Editor'"
-  [innerHTML]="DefaultUL"
+  [attr.aria-label]="config().editorAriaLabel ?? 'Rich Text Editor'"
+  [innerHTML]="initialContent()"
 ></div>
-
-@if (htmlString()) {
-  <div class="debug-output">
-    <strong>HTML Output:</strong>
-    <pre>{{ htmlString() }}</pre>
-  </div>
-}
