@@ -2,7 +2,41 @@
   display: flex;
   gap: 8px;
   margin-bottom: 8px;
+
+  button {
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #fff;
+    cursor: pointer;
+    font-size: 14px;
+
+    &:hover {
+      background: #f5f5f5;
+    }
+
+    &:focus {
+      outline: 2px solid #1976d2;
+      outline-offset: 2px;
+    }
+  }
 }
+
+.debug-button {
+  margin-bottom: 8px;
+  padding: 6px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #f8f9fa;
+  cursor: pointer;
+  font-size: 12px;
+  color: #666;
+
+  &:hover {
+    background: #e9ecef;
+  }
+}
+
 .editor-area {
   min-height: 120px;
   border: 1px solid #ccc;
@@ -10,4 +44,195 @@
   padding: 8px;
   outline: none;
   background: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.5;
+
+  &:focus {
+    border-color: #1976d2;
+    box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+  }
+
+  ul.list-disc {
+    margin: 0;
+    padding-left: 20px;
+    list-style-type: disc;
+  }
+}
+
+// Link Actions Popover
+.link-actions-popover {
+  position: absolute;
+  z-index: 1001;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(60, 64, 67, 0.15);
+  padding: 12px 16px;
+  min-width: 330px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid #e0e0e0;
+
+  .popover-label {
+    color: #444;
+    font-weight: 500;
+  }
+
+  .link-preview {
+    color: #1a0dab;
+    text-decoration: underline;
+    margin-right: 8px;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    &:hover {
+      color: #0066cc;
+    }
+  }
+
+  .actions {
+    margin-left: auto;
+    display: flex;
+    gap: 8px;
+
+    button {
+      border: none;
+      background: none;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-weight: 500;
+      cursor: pointer;
+      font-size: 13px;
+
+      &.action-change {
+        color: #1a73e8;
+
+        &:hover {
+          background: #e8f0fe;
+        }
+      }
+
+      &.action-remove {
+        color: #d93025;
+
+        &:hover {
+          background: #fce8e6;
+        }
+      }
+    }
+  }
+}
+
+// Link Input Popover
+.link-popover {
+  position: absolute;
+  z-index: 1000;
+  background: var(--md-sys-color-surface, #fff);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  padding: 16px 20px 12px 16px;
+  min-width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid #e0e0e0;
+
+  .popover-label {
+    font-size: 14px;
+    color: var(--md-sys-color-on-surface, #333);
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+
+  .link-input {
+    font-size: 15px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--md-sys-color-outline, #ccc);
+    outline: none;
+    margin-bottom: 8px;
+    font-family: inherit;
+
+    &:focus {
+      border-color: #1976d2;
+      box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+    }
+
+    &::placeholder {
+      color: #999;
+    }
+  }
+
+  .popover-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+
+    .btn-primary {
+      background: var(--md-sys-color-primary, #1976d2);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 16px;
+      font-weight: 500;
+      cursor: pointer;
+      font-size: 14px;
+
+      &:hover {
+        background: #1565c0;
+      }
+
+      &:focus {
+        outline: 2px solid #1976d2;
+        outline-offset: 2px;
+      }
+    }
+
+    .btn-secondary {
+      background: none;
+      color: var(--md-sys-color-on-surface, #333);
+      border: none;
+      border-radius: 6px;
+      padding: 8px 16px;
+      cursor: pointer;
+      font-size: 14px;
+
+      &:hover {
+        background: #f5f5f5;
+      }
+
+      &:focus {
+        outline: 2px solid #666;
+        outline-offset: 2px;
+      }
+    }
+  }
+}
+
+// Debug Output
+.debug-output {
+  margin-top: 16px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+
+  strong {
+    display: block;
+    margin-bottom: 8px;
+    color: #495057;
+    font-size: 14px;
+  }
+
+  pre {
+    margin: 0;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 12px;
+    color: #6f42c1;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
 }
