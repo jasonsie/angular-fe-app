@@ -4,10 +4,12 @@ import {
   ViewChild,
   ElementRef,
   input,
+  output,
   afterNextRender,
   signal,
   computed,
   inject,
+  OnDestroy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { EditorToolbarComponent } from './components/editor-toolbar/editor-toolbar.component';
@@ -38,6 +40,9 @@ export class RichTextEditorComponent {
 
   // Configuration inputs
   readonly config = input<EditorConfig>(DEFAULT_EDITOR_CONFIG);
+
+  // Output events
+  readonly contentChange = output<string>();
 
   // Computed configuration properties
   readonly toolbarConfig = computed<EditorToolbarConfig>(() => {
@@ -128,12 +133,14 @@ export class RichTextEditorComponent {
   }
 
   /**
-   * Attaches event listeners for link detection.
+   * Attaches event listeners for link detection and content changes.
    */
   private attachEventListeners(): void {
     const editor = this.editorRef.nativeElement;
     editor.addEventListener('mouseup', this.handleCaretInLink);
     editor.addEventListener('keyup', this.handleCaretInLink);
+    editor.addEventListener('blur', this.handleContentChange);
+    editor.addEventListener('paste', this.handleContentChange);
   }
 
   /**
@@ -148,6 +155,14 @@ export class RichTextEditorComponent {
 
     const linkElement = this.findAnchorElement(selection.anchorNode);
     this.updateLinkState({ hoveredLinkNode: linkElement });
+  };
+
+  /**
+   * Handles content changes in the editor and emits the updated content.
+   */
+  private handleContentChange = (): void => {
+    const content = this.editorRef.nativeElement.innerHTML.trim();
+    this.contentChange.emit(content);
   };
 
   /**

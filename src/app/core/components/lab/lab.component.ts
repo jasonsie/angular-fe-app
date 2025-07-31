@@ -1,8 +1,18 @@
-import { Component, ChangeDetectionStrategy, OnInit } from '@angular/core';
+import {
+  Component,
+  ChangeDetectionStrategy,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { RichTextEditorComponent } from './rich-text-editor/rich-text-editor.component';
 import type { EditorConfig } from './rich-text-editor/models/editor-config.model';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule } from '@angular/forms';
+import {
+  ReactiveFormsModule,
+  FormBuilder,
+  FormGroup,
+  Validators,
+} from '@angular/forms';
 @Component({
   selector: 'app-lab',
   standalone: true,
@@ -15,6 +25,29 @@ import { ReactiveFormsModule } from '@angular/forms';
   },
 })
 export class LabComponent implements OnInit {
+  private readonly fb = new FormBuilder();
+
+  // Reactive form
+  readonly editorForm: FormGroup;
+
+  // Signals for form state
+  readonly formSubmitted = signal(false);
+  readonly formData = signal<any>(null);
+
+  constructor() {
+    // Initialize the reactive form
+    this.editorForm = this.fb.group({
+      defaultEditor: ['', [Validators.required, Validators.minLength(10)]],
+      autoTransformEditor: [
+        '',
+        [Validators.required, Validators.minLength(10)],
+      ],
+      disabledBulletEditor: [
+        '',
+        [Validators.required, Validators.minLength(10)],
+      ],
+    });
+  }
   // Default configuration (with debug enabled)
   readonly defaultEditorConfig: EditorConfig = {
     toolbar: {
@@ -38,7 +71,7 @@ export class LabComponent implements OnInit {
       disableBulletListTool: true, // Disable the button functionality
     },
     initialContent:
-      'This is the pure string',
+        '<ul class="list-disc"><li><a href="https://webmail.nityo.com/#1" target="_blank" rel="noopener noreferrer">Link</a></li><li>Link-2</li></ul>',
     editorAriaLabel: 'Default Rich Text Editor',
   };
 
@@ -90,9 +123,102 @@ Third item`,
   // For backward compatibility, keeping the original property name
   readonly editorConfig = this.defaultEditorConfig;
 
-  constructor() {}
-
   ngOnInit() {
     // Initialization logic can go here
+  }
+
+  /**
+   * Handles content change from the default editor
+   */
+  onDefaultEditorContentChange(content: string): void {
+    this.editorForm.patchValue({ defaultEditor: content });
+  }
+
+  /**
+   * Handles content change from the auto-transform editor
+   */
+  onAutoTransformEditorContentChange(content: string): void {
+    this.editorForm.patchValue({ autoTransformEditor: content });
+  }
+
+  /**
+   * Handles content change from the disabled bullet editor
+   */
+  onDisabledBulletEditorContentChange(content: string): void {
+    this.editorForm.patchValue({ disabledBulletEditor: content });
+  }
+
+  /**
+   * Handles form submission
+   */
+  onSubmit(): void {
+    this.formSubmitted.set(true);
+
+    if (this.editorForm.valid) {
+      this.formData.set(this.editorForm.value);
+      console.log('Form Data:', this.editorForm.value);
+    } else {
+      console.log('Form is invalid');
+      this.markFormGroupTouched();
+    }
+  }
+
+  /**
+   * Marks all form controls as touched to show validation errors
+   */
+  private markFormGroupTouched(): void {
+    Object.keys(this.editorForm.controls).forEach((key) => {
+      this.editorForm.get(key)?.markAsTouched();
+    });
+  }
+
+  /**
+   * Gets validation error message for a form control
+   */
+  getErrorMessage(controlName: string): string {
+    const control = this.editorForm.get(controlName);
+    if (control?.hasError('required')) {
+      return `${this.getControlDisplayName(controlName)} is required`;
+    }
+    if (control?.hasError('minlength')) {
+      const requiredLength = control.errors?.['minlength'].requiredLength;
+      return `${this.getControlDisplayName(
+        controlName
+      )} must be at least ${requiredLength} characters long`;
+    }
+    return '';
+  }
+
+  /**
+   * Gets display name for form control
+   */
+  private getControlDisplayName(controlName: string): string {
+    const displayNames: { [key: string]: string } = {
+      defaultEditor: 'Default Editor',
+      autoTransformEditor: 'Auto-Transform Editor',
+      disabledBulletEditor: 'Disabled Bullet Editor',
+    };
+    return displayNames[controlName] || controlName;
+  }
+
+  /**
+   * Checks if a form control has validation errors and should show them
+   */
+  shouldShowError(controlName: string): boolean {
+    const control = this.editorForm.get(controlName);
+    return !!(
+      control &&
+      control.invalid &&
+      (control.dirty || control.touched || this.formSubmitted())
+    );
+  }
+
+  /**
+   * Resets the form to initial state
+   */
+  onReset(): void {
+    this.editorForm.reset();
+    this.formSubmitted.set(false);
+    this.formData.set(null);
   }
 }
