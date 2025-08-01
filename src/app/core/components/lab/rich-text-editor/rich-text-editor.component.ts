@@ -32,7 +32,7 @@ import {
   styleUrls: ['./rich-text-editor.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class RichTextEditorComponent {
+export class RichTextEditorComponent implements OnDestroy {
   @ViewChild('editor', { static: true }) editorRef!: ElementRef<HTMLDivElement>;
 
   // Injected services
@@ -124,6 +124,10 @@ export class RichTextEditorComponent {
     });
   }
 
+  ngOnDestroy(): void {
+    this.removeEventListeners();
+  }
+
   /**
    * Initializes the editor with content and sets up event listeners.
    */
@@ -140,7 +144,20 @@ export class RichTextEditorComponent {
     editor.addEventListener('mouseup', this.handleCaretInLink);
     editor.addEventListener('keyup', this.handleCaretInLink);
     editor.addEventListener('blur', this.handleContentChange);
-    editor.addEventListener('paste', this.handleContentChange);
+    editor.addEventListener('paste', this.handlePaste);
+  }
+
+  /**
+   * Removes event listeners during component destruction.
+   */
+  private removeEventListeners(): void {
+    if (!this.editorRef?.nativeElement) return;
+
+    const editor = this.editorRef.nativeElement;
+    editor.removeEventListener('mouseup', this.handleCaretInLink);
+    editor.removeEventListener('keyup', this.handleCaretInLink);
+    editor.removeEventListener('blur', this.handleContentChange);
+    editor.removeEventListener('paste', this.handlePaste);
   }
 
   /**
@@ -155,6 +172,43 @@ export class RichTextEditorComponent {
 
     const linkElement = this.findAnchorElement(selection.anchorNode);
     this.updateLinkState({ hoveredLinkNode: linkElement });
+  };
+
+  /**
+   * Handles paste events to allow only plain text content.
+   */
+  private handlePaste = (event: ClipboardEvent): void => {
+    event.preventDefault();
+
+    // Get clipboard data
+    const clipboardData = event.clipboardData;
+    if (!clipboardData) return;
+
+    // Extract plain text only
+    const plainText = clipboardData.getData('text/plain');
+    if (!plainText) return;
+
+    // Get current selection
+    const selection = window.getSelection();
+    if (!selection?.rangeCount) return;
+
+    const range = selection.getRangeAt(0);
+
+    // Delete any selected content
+    range.deleteContents();
+
+    // Insert plain text as text node
+    const textNode = document.createTextNode(plainText);
+    range.insertNode(textNode);
+
+    // Move cursor to end of inserted text
+    range.setStartAfter(textNode);
+    range.setEndAfter(textNode);
+    selection.removeAllRanges();
+    selection.addRange(range);
+
+    // Trigger content change event
+    this.handleContentChange();
   };
 
   /**
