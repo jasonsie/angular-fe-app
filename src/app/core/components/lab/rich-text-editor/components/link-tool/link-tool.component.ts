@@ -62,7 +62,7 @@ export interface LinkState {
               rel="noopener noreferrer"
               class="link-preview"
               (click)="onGoToLink($event)"
-            >{{ linkState().hoveredLinkNode?.href }}</a>
+            >{{ originalHref() }}</a>
 
             <div class="actions">
               <button type="button" (click)="onEditLink()" class="action-change">Change</button>
@@ -95,6 +95,12 @@ export class LinkToolComponent {
   readonly shouldShowPanel = computed(() =>
     this.isEnabled() && (this.linkState().showLinkPanel || this.linkState().hoveredLinkNode)
   );
+
+  readonly originalHref = computed(() => {
+    const link = this.linkState().hoveredLinkNode;
+    if (!link) return '';
+    return link.getAttribute('data-original-href') || link.href;
+  });
 
   onAddLink(): void {
     if (!this.isEnabled()) return;

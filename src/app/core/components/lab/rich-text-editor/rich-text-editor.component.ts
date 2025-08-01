@@ -297,8 +297,10 @@ export class RichTextEditorComponent implements OnDestroy {
   }
 
   onEditLink(link: HTMLAnchorElement): void {
+    // Use the original user input instead of the resolved href
+    const originalHref = link.getAttribute('data-original-href') || link.href;
     this.updateLinkState({
-      linkInputValue: link.href,
+      linkInputValue: originalHref,
       editingLinkNode: link,
       showLinkPanel: true,
     });
@@ -340,7 +342,9 @@ export class RichTextEditorComponent implements OnDestroy {
     linkElement: HTMLAnchorElement,
     url: string
   ): void {
-    linkElement.href = url;
+    linkElement.href = url.trim();
+    // Store the original user input for display purposes
+    linkElement.setAttribute('data-original-href', url.trim());
   }
 
   /**
@@ -370,10 +374,12 @@ export class RichTextEditorComponent implements OnDestroy {
     textContent: string
   ): HTMLAnchorElement {
     const anchor = document.createElement('a');
-    anchor.href = href;
+    anchor.href = href.trim();
     anchor.target = '_blank';
     anchor.rel = 'noopener noreferrer';
     anchor.textContent = textContent;
+    // Store the original user input for display purposes
+    anchor.setAttribute('data-original-href', href.trim());
     return anchor;
   }
 
