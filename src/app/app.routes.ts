@@ -31,6 +31,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'upload-image',
+        loadComponent: () =>
+          import('./features/image-upload/components/image-upload.component').then(
+            (m) => m.ImageUploadComponent
+          ),
+      },
+      {
         path: '**',
         loadComponent: () =>
           import('./core/components/blank/blank.component').then(

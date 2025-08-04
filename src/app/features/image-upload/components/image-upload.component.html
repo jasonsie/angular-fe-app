@@ -1,0 +1,92 @@
+<div class="image-upload-container"></div>
+<h2>Image Upload</h2>
+
+<div
+  class="upload-area"
+  (dragover)="onDragOver($event)"
+  (dragleave)="onDragLeave($event)"
+  (drop)="onDrop($event)"
+  [class.drag-over]="isDragOver()"
+>
+  <div class="upload-content">
+    <div class="upload-icon">📁</div>
+    <p>Drag and drop images here or</p>
+    <input
+      type="file"
+      #fileInput
+      (change)="onFileSelected($event)"
+      accept="image/*"
+      multiple
+      class="file-input"
+    />
+    <button type="button" class="browse-button" (click)="fileInput.click()">
+      Browse Files
+    </button>
+  </div>
+</div>
+
+@if (selectedImages().length > 0) {
+<div class="images-preview">
+  <h3>Selected Images ({{ selectedImages().length }})</h3>
+  <div class="image-grid">
+    @for (image of selectedImages(); track image.id) {
+    <div class="image-item">
+      <img [src]="image.url" [alt]="image.file.name" class="preview-image" />
+      <div class="image-info">
+        <p class="image-name">
+          <button
+            type="button"
+            class="download-button"
+            (click)="downloadImage(image)"
+            [title]="'Download ' + image.file.name"
+            aria-label="Download image"
+          >
+            <span class="download-icon">⬇️</span>
+            {{ image.file.name }}
+          </button>
+        </p>
+        <p class="image-size">{{ formatFileSize(image.file.size) }}</p>
+      </div>
+      <button
+        type="button"
+        class="remove-button"
+        (click)="removeImage(image.id)"
+        aria-label="Remove image"
+      >
+        ✕
+      </button>
+    </div>
+    }
+  </div>
+
+  <div class="upload-actions">
+    <button
+      type="button"
+      class="upload-button"
+      (click)="uploadImages()"
+      [disabled]="isUploading()"
+    >
+      @if (isUploading()) { Uploading... } @else { Upload
+      {{ selectedImages().length }} Image(s) }
+    </button>
+    <button type="button" class="clear-button" (click)="clearImages()">
+      Clear All
+    </button>
+  </div>
+</div>
+} @if (uploadProgress() > 0) {
+<div class="upload-progress">
+  <div class="progress-bar">
+    <div class="progress-fill" [style.width.%]="uploadProgress()"></div>
+  </div>
+  <p>{{ uploadProgress() }}% uploaded</p>
+</div>
+} @if (uploadMessage()) {
+<div
+  class="upload-message"
+  [class.success]="uploadSuccess()"
+  [class.error]="!uploadSuccess()"
+>
+  {{ uploadMessage() }}
+</div>
+}

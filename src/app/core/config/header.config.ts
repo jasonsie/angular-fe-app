@@ -13,6 +13,12 @@ export const Headers: Header[] = [
     active: 'lab',
     icon: 'science',
   },
+  {
+    title: 'Upload Image',
+    route: '/upload-image',
+    active: 'upload-image',
+    icon: 'cloud_upload',
+  },
   // {
   //   title: 'About',
   //   route: '/about',
