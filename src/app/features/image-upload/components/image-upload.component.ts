@@ -3,9 +3,13 @@ import {
   ChangeDetectionStrategy,
   signal,
   computed,
+  inject,
+  OnInit,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ImageService } from '../../../core/providers/image.service';
+import { ImageData } from '../../../core/models/api.model';
 
 interface ImageFile {
   file: File;
@@ -21,8 +25,11 @@ interface ImageFile {
   templateUrl: './image-upload.component.html',
   styleUrl: './image-upload.component.scss',
 })
-export class ImageUploadComponent {
+export class ImageUploadComponent implements OnInit {
+  private readonly imageService = inject(ImageService);
+
   readonly selectedImages = signal<ImageFile[]>([]);
+  readonly mockImages = signal<ImageData[]>([]);
   readonly isDragOver = signal(false);
   readonly isUploading = signal(false);
   readonly uploadProgress = signal(0);
@@ -32,6 +39,23 @@ export class ImageUploadComponent {
   readonly totalSize = computed(() =>
     this.selectedImages().reduce((total, image) => total + image.file.size, 0)
   );
+
+  ngOnInit(): void {
+    this.loadMockImages();
+  }
+
+  private async loadMockImages(): Promise<void> {
+    try {
+      // Load mock images from the service
+      const mockImages = this.imageService.getMockImages();
+      this.mockImages.set(mockImages);
+
+      // Optionally, load images via API simulation
+      await this.imageService.fetchAndUpdateImages();
+    } catch (error) {
+      console.error('Error loading mock images:', error);
+    }
+  }
 
   onDragOver(event: DragEvent): void {
     event.preventDefault();
@@ -108,24 +132,24 @@ export class ImageUploadComponent {
     this.uploadMessage.set('');
 
     try {
-      // Simulate upload progress
-      for (let i = 0; i <= 100; i += 10) {
-        this.uploadProgress.set(i);
-        await new Promise((resolve) => setTimeout(resolve, 200));
+      // Use the mock API service to upload images
+      const files = this.selectedImages().map(img => img.file);
+
+      // Upload with progress tracking
+      const response = await this.imageService.uploadImages(files).toPromise();
+
+      if (response?.success) {
+        this.showMessage(
+          `Successfully uploaded ${files.length} image(s)!`,
+          true
+        );
+
+        // Reload images to show the newly uploaded ones
+        await this.imageService.fetchAndUpdateImages();
+        this.clearImages();
+      } else {
+        throw new Error(response?.message || 'Upload failed');
       }
-
-      // Here you would typically upload to your backend
-      // const formData = new FormData();
-      // this.selectedImages().forEach(image => {
-      //   formData.append('images', image.file);
-      // });
-      // await this.httpClient.post('/api/upload', formData).toPromise();
-
-      this.showMessage(
-        `Successfully uploaded ${this.selectedImages().length} image(s)!`,
-        true
-      );
-      this.clearImages();
     } catch (error) {
       this.showMessage('Upload failed. Please try again.', false);
       console.error('Upload error:', error);
@@ -134,17 +158,124 @@ export class ImageUploadComponent {
     }
   }
 
-  downloadImage(image: ImageFile): void {
-    // Create a temporary anchor element to trigger download
+  /**
+   * Download an image - handles both user-uploaded files and backend images
+   * @param image - Can be either ImageFile (user upload) or ImageData (backend)
+   */
+  downloadImage(image: ImageFile | ImageData): void {
+    try {
+      // Determine if this is a user-uploaded file or backend image
+      const isUserUpload = 'file' in image;
+
+      if (isUserUpload) {
+        this.downloadUserUploadedImage(image as ImageFile);
+      } else {
+        this.downloadBackendImage(image as ImageData);
+      }
+    } catch (error) {
+      console.error('Error downloading image:', error);
+      this.showMessage('Failed to download image', false);
+    }
+  }
+
+  /**
+   * Download user-uploaded image (has blob URL)
+   */
+  private downloadUserUploadedImage(image: ImageFile): void {
     const link = document.createElement('a');
     link.href = image.url;
     link.download = image.file.name;
     link.style.display = 'none';
 
-    // Append to body, click, and remove
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  }
+
+  /**
+   * Download backend image (URL or base64)
+   */
+  private downloadBackendImage(image: ImageData): void {
+    if (this.isBase64Image(image.url)) {
+      this.downloadBase64Image(image);
+    } else {
+      this.downloadImageFromUrl(image);
+    }
+  }
+
+  /**
+   * Check if the image URL is a base64 string
+   */
+  private isBase64Image(url: string): boolean {
+    return url.startsWith('data:image/');
+  }
+
+  /**
+   * Download image from base64 string
+   */
+  private downloadBase64Image(image: ImageData): void {
+    const link = document.createElement('a');
+    link.href = image.url;
+
+    // Generate proper filename with extension
+    let filename = image.filename;
+    if (!filename || !filename.includes('.')) {
+      const mimeType = this.getMimeTypeFromBase64(image.url);
+      const extension = this.getFileExtension(filename || `image_${image.id}`, mimeType);
+      filename = `${filename || `image_${image.id}`}.${extension}`;
+    }
+
+    link.download = filename;
+    link.style.display = 'none';
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  /**
+   * Download image from regular URL (fetch and create blob)
+   */
+  private async downloadImageFromUrl(image: ImageData): Promise<void> {
+    try {
+      // Show loading state
+      this.showMessage('Downloading image...', true);
+
+      const response = await fetch(image.url);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+
+      // Generate proper filename with extension
+      let filename = image.filename;
+      if (!filename || !filename.includes('.')) {
+        const contentType = response.headers.get('content-type');
+        const extension = this.getFileExtension(filename || `image_${image.id}`, contentType || undefined);
+        filename = `${filename || `image_${image.id}`}.${extension}`;
+      }
+
+      const link = document.createElement('a');
+      link.href = objectUrl;
+      link.download = filename;
+      link.style.display = 'none';
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // Clean up object URL
+      URL.revokeObjectURL(objectUrl);
+
+      this.showMessage('Image downloaded successfully', true);
+    } catch (error) {
+      console.error('Error downloading image from URL:', error);
+      this.showMessage('Failed to download image from server', false);
+      throw error;
+    }
   }
 
   formatFileSize(bytes: number): string {
@@ -169,5 +300,88 @@ export class ImageUploadComponent {
     setTimeout(() => {
       this.uploadMessage.set('');
     }, 5000);
+  }
+
+  /**
+   * Get file extension from filename or MIME type
+   */
+  private getFileExtension(filename: string, mimeType?: string): string {
+    // Try to get extension from filename first
+    const extensionFromName = filename.split('.').pop()?.toLowerCase();
+    if (extensionFromName && extensionFromName.length <= 4) {
+      return extensionFromName;
+    }
+
+    // Fallback to MIME type if available
+    if (mimeType) {
+      const mimeToExt: Record<string, string> = {
+        'image/jpeg': 'jpg',
+        'image/jpg': 'jpg',
+        'image/png': 'png',
+        'image/gif': 'gif',
+        'image/webp': 'webp',
+        'image/svg+xml': 'svg',
+        'image/bmp': 'bmp',
+        'image/tiff': 'tiff'
+      };
+      return mimeToExt[mimeType] || 'jpg';
+    }
+
+    return 'jpg'; // Default fallback
+  }
+
+  /**
+   * Extract MIME type from base64 data URL
+   */
+  private getMimeTypeFromBase64(base64Url: string): string | undefined {
+    const match = base64Url.match(/^data:([^;]+);base64,/);
+    return match ? match[1] : undefined;
+  }
+
+  /**
+   * Load mock images using the service
+   */
+  async loadMockImagesFromService(): Promise<void> {
+    try {
+      const response = await this.imageService.loadImages().toPromise();
+      if (response?.success && response.data) {
+        this.mockImages.set(response.data);
+        this.showMessage(`Loaded ${response.data.length} mock images`, true);
+      }
+    } catch (error) {
+      this.showMessage('Failed to load mock images', false);
+      console.error('Error loading mock images:', error);
+    }
+  }
+
+  /**
+   * Search mock images
+   */
+  async searchMockImages(query: string): Promise<void> {
+    try {
+      const response = await this.imageService.searchImages(query).toPromise();
+      if (response?.success && response.data) {
+        this.mockImages.set(response.data);
+        this.showMessage(`Found ${response.data.length} images`, true);
+      }
+    } catch (error) {
+      this.showMessage('Search failed', false);
+      console.error('Search error:', error);
+    }
+  }
+
+  /**
+   * Get image service signals for template access
+   */
+  get serviceImages() {
+    return this.imageService.images;
+  }
+
+  get isServiceLoading() {
+    return this.imageService.isLoading();
+  }
+
+  get isServiceUploading() {
+    return this.imageService.isUploading();
   }
 }

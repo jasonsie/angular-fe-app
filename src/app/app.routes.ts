@@ -38,6 +38,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'mock-api-demo',
+        loadComponent: () =>
+          import('./features/image-upload/components/mock-api-demo.component').then(
+            (m) => m.MockApiDemoComponent
+          ),
+      },
+      {
         path: '**',
         loadComponent: () =>
           import('./core/components/blank/blank.component').then(

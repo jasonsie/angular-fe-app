@@ -1,5 +1,58 @@
-<div class="image-upload-container"></div>
-<h2>Image Upload</h2>
+<div class="image-upload-container">
+  <h2>Image Upload</h2>
+
+  <!-- Mock Images Section -->
+  @if (mockImages().length > 0) {
+  <div class="mock-images-section">
+    <h3>Available Mock Images ({{ mockImages().length }})</h3>
+    <div class="mock-controls">
+      <button type="button" class="load-button" (click)="loadMockImagesFromService()">
+        Reload from Service
+      </button>
+      <input
+        type="text"
+        placeholder="Search images..."
+        #searchInput
+        (keyup.enter)="searchMockImages(searchInput.value)"
+        class="search-input"
+      />
+      <button type="button" class="search-button" (click)="searchMockImages(searchInput.value)">
+        Search
+      </button>
+    </div>
+    <div class="image-grid mock-grid">
+      @for (image of mockImages(); track image.id) {
+      <div class="image-item mock-item">
+        <img [src]="image.url" [alt]="image.filename" class="preview-image" />
+        <div class="image-info">
+          <p class="image-name">
+            <button
+              type="button"
+              class="download-button"
+              (click)="downloadImage(image)"
+              [title]="'Download ' + image.filename"
+              aria-label="Download image"
+            >
+              <span class="download-icon">⬇️</span>
+              {{ image.filename }}
+            </button>
+          </p>
+          <p class="image-size">{{ formatFileSize(image.size || 0) }}</p>
+          @if (image.tags) {
+          <div class="image-tags">
+            @for (tag of image.tags; track tag) {
+            <span class="tag">{{ tag }}</span>
+            }
+          </div>
+          }
+        </div>
+      </div>
+      }
+    </div>
+  </div>
+  }
+
+  <!-- Upload Area -->
 
 <div
   class="upload-area"
@@ -88,5 +141,11 @@
   [class.error]="!uploadSuccess()"
 >
   {{ uploadMessage() }}
+</div>
+}
+
+@if (isServiceLoading) {
+<div class="loading-indicator">
+  <p>Loading images from service...</p>
 </div>
 }
