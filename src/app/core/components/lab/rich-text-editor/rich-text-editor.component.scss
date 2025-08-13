@@ -18,4 +18,20 @@
     padding-left: 20px;
     list-style-type: disc;
   }
+
+  // Make links clickable and visually distinct
+  a {
+    color: #1976d2;
+    text-decoration: underline;
+    cursor: pointer;
+
+    &:hover {
+      color: #1565c0;
+      text-decoration: underline;
+    }
+
+    &:visited {
+      color: #7b1fa2;
+    }
+  }
 }

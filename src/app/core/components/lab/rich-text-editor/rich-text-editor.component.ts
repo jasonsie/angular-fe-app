@@ -145,6 +145,7 @@ export class RichTextEditorComponent implements OnDestroy {
     editor.addEventListener('keyup', this.handleCaretInLink);
     editor.addEventListener('blur', this.handleContentChange);
     editor.addEventListener('paste', this.handlePaste);
+    editor.addEventListener('click', this.handleLinkClick);
   }
 
   /**
@@ -158,7 +159,29 @@ export class RichTextEditorComponent implements OnDestroy {
     editor.removeEventListener('keyup', this.handleCaretInLink);
     editor.removeEventListener('blur', this.handleContentChange);
     editor.removeEventListener('paste', this.handlePaste);
+    editor.removeEventListener('click', this.handleLinkClick);
   }
+
+  /**
+   * Handles click events on links to allow navigation while in contenteditable mode.
+   */
+  private handleLinkClick = (event: MouseEvent): void => {
+    const target = event.target as HTMLElement;
+
+    // Check if the clicked element is an anchor tag or contains one
+    const anchorElement = target.tagName === 'A' ?
+      target as HTMLAnchorElement :
+      target.closest('a') as HTMLAnchorElement;
+
+    if (anchorElement && anchorElement.href) {
+      // Prevent the contenteditable from handling the click
+      event.preventDefault();
+      event.stopPropagation();
+
+      // Open the link
+      window.open(anchorElement.href, '_blank', 'noopener noreferrer');
+    }
+  };
 
   /**
    * Handles caret position changes to detect when inside a link.
