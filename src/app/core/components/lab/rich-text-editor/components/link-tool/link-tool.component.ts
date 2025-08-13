@@ -20,59 +20,7 @@ export interface LinkState {
   selector: 'app-link-tool',
   standalone: true,
   imports: [CommonModule],
-  template: `
-    <div class="link-tool-container">
-      <button
-        type="button"
-        (click)="onAddLink()"
-        [attr.aria-label]="config().linkAriaLabel"
-        class="toolbar-button"
-      >
-        {{ config().linkButtonText }}
-      </button>
-
-      <!-- Link Management Panel -->
-      <div class="link-panel">
-        @if (linkState().showLinkPanel) {
-          <div class="link-input-section">
-            <label for="link-input-box" class="panel-label">Insert link</label>
-            <input
-              id="link-input-box"
-              type="url"
-              [placeholder]="config().linkPlaceholder"
-              class="link-input"
-              [value]="linkState().linkInputValue"
-              (input)="onLinkInputChange($any($event.target).value)"
-              (keydown)="onLinkInputKeydown($event)"
-              autocomplete="off"
-            />
-            <div class="panel-actions">
-              <button type="button" (click)="onApplyLink()" class="btn-primary">Apply</button>
-              <button type="button" (click)="onCancelLink()" class="btn-secondary">Cancel</button>
-            </div>
-          </div>
-        }
-
-        @if (linkState().hoveredLinkNode && !linkState().showLinkPanel) {
-          <div class="link-actions-section">
-            <span class="panel-label">Current link:</span>
-            <a
-              [href]="linkState().hoveredLinkNode?.href"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="link-preview"
-              (click)="onGoToLink($event)"
-            >{{ originalHref() }}</a>
-
-            <div class="actions">
-              <button type="button" (click)="onEditLink()" class="action-change">Change</button>
-              <button type="button" (click)="onRemoveLink()" class="action-remove">Remove</button>
-            </div>
-          </div>
-        }
-      </div>
-    </div>
-  `,
+  templateUrl: './link-tool.component.html',
   styleUrls: ['./link-tool.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
