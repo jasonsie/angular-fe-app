@@ -21,6 +21,7 @@
           [value]="linkState().linkInputValue"
           (input)="onLinkInputChange($any($event.target).value)"
           (keydown)="onLinkInputKeydown($event)"
+          (blur)="onLinkInputBlur()"
           autocomplete="off"
         />
         <div class="panel-actions">

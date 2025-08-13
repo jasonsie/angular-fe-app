@@ -103,4 +103,11 @@ export class LinkToolComponent {
       this.onCancelLink();
     }
   }
+  onLinkInputBlur() {
+    setTimeout(() => {
+      if (this.linkState().showLinkPanel) {
+        this.onCancelLink();
+      }
+    }, 100); // Delay to allow click events to register
+  }
 }
